@@ -1,4 +1,5 @@
-(function() {
+// TODO remove all the IE code
+
 function Asteroids() {
 	if ( ! window.ASTEROIDS )
 		window.ASTEROIDS = {
@@ -174,85 +175,10 @@ function Asteroids() {
 		}
 	};
 	
-	/*function Highscores() {
-		var w = (document.clientWidth || window.innerWidth);
-		var h = (document.clientHeight || window.innerHeight);
-		
-		this.container = document.createElement('div');
-		this.container.className = "ASTEROIDSYEAH";
-		with ( this.container.style ) {
-			position = "fixed";
-			top = (h / 2 - 250) + "px";
-			left = (w / 2 - 250) + "px";
-			width = "500px";
-			height = "500px";
-			MozBoxShadow = WebkitBoxShadow = "0 0 25px #000";
-			zIndex = "10002";
-		};
-		document.body.appendChild(this.container);
-		
-		// Create iframe
-		this.iframe = document.createElement('iframe');
-		this.iframe.className = "ASTEROIDSYEAH";
-		this.iframe.width = this.iframe.height = 500;
-		this.iframe.src = highscoreURL;
-		this.iframe.frameBorder = 0;
-		this.container.appendChild(this.iframe);
-		
-		// Create close button
-		this.close = document.createElement('a');
-		this.close.href = "#";
-		this.close.onclick = function() {
-			that.highscores.hide();
-		};
-		this.close.innerHTML = "X";
-		with ( this.close.style ) {
-			position = "absolute";
-			display = "block";
-			width = "24px";
-			height = "24px";
-			top = "-12px";
-			right = "-12px";
-			background = "url(" + closeURL + ")";
-			textIndent = "-10000px";
-			outline = "none";
-			textDecoration = "none";
-			fontFamily = "Arial";
-			zIndex = "10003";
-		}
-		this.container.appendChild(this.close);
-	};
-	
-	Highscores.prototype = {
-		show: function() {
-			this.container.style.display = "block";
-			this.sendScore();
-		},
-		
-		hide: function() {
-			this.container.style.display = "none";
-		},
-		
-		sendScore: function() {
-			this.iframe.src = highscoreURL + "#" + (that.enemiesKilled * 10) + ":" + escape(document.location.href);
-		}
-	};*/
-	
-	/*
-		end classes, begin code
-	*/
-	
 	var that = this;
-	
-	var isIE = !!window.ActiveXObject; // IE gets less performance-intensive
-	var isIEQuirks = isIE && document.compatMode == "BackCompat";
 	
 	// configuration directives are placed in local variables
 	var w = document.documentElement.clientWidth, h = document.documentElement.clientHeight;
-	if ( isIEQuirks ) {
-		w = document.body.clientWidth;
-		h = document.body.clientHeight;
-	}
 	
 	var playerWidth = 20, playerHeight = 30;
 	
@@ -274,13 +200,10 @@ function Asteroids() {
 	
 	var timeBetweenFire = 150; // how many milliseconds between shots
 	var timeBetweenBlink = 250; // milliseconds between enemy blink
-	var timeBetweenEnemyUpdate = isIE ? 10000 : 2000;
+	var timeBetweenEnemyUpdate = 2000;
 	var bulletRadius = 2;
-	var maxParticles = isIE ? 20 : 40;
-	var maxBullets = isIE ? 10 : 20;
-	
-	/*var highscoreURL = "http://asteroids.glonk.se/highscores.html";
-	var closeURL = "http://asteroids.glonk.se/close.png";*/
+	var maxParticles = 40;
+	var maxBullets = 20;
 	
 	// generated every 10 ms
 	this.flame = {r: [], y: []};
@@ -322,6 +245,7 @@ function Asteroids() {
 	this.particles = [];
 	
 	// things to shoot is everything textual and an element of type not specified in types AND not a navigation element (see further down)
+  // TODO - the enemies are other ships, not elements
 	function updateEnemyIndex() {
 		for ( var i = 0, enemy; enemy = that.enemies[i]; i++ )
 			removeClass(enemy, "ASTEROIDSYEAHENEMY");
@@ -609,32 +533,11 @@ function Asteroids() {
 	});
 	
 	var eventResize = function() {
-		if ( ! isIE ) {
-			that.canvas.style.display = "none";
-			
 			w = document.documentElement.clientWidth;
 			h = document.documentElement.clientHeight;
 			
 			that.canvas.setAttribute('width', w);
 			that.canvas.setAttribute('height', h);
-			
-			with ( that.canvas.style ) {
-				display = "block";
-				width = w + "px";
-				height = h + "px";
-			}
-		} else {
-			w = document.documentElement.clientWidth;
-			h = document.documentElement.clientHeight;
-			
-			if ( isIEQuirks ) {
-				w = document.body.clientWidth;
-				h = document.body.clientHeight;
-			}
-			
-			that.canvas.setAttribute('width', w);
-			that.canvas.setAttribute('height', h);
-		}
 	};
 	addEvent(window, 'resize', eventResize);
 	
@@ -672,14 +575,6 @@ function Asteroids() {
 		this.points = document.getElementById('ASTEROIDS-POINTS');
 	}
 	
-	// Because IE quirks does not understand position: fixed we set to absolute and just reposition it everything frame
-	if ( isIEQuirks ) {
-		this.gameContainer.style.position =
-			this.canvas.style.position =
-			this.navigation.style.position 
-				= "absolute";
-	}
-	
 	setScore();
 	
 	// highscore link
@@ -712,6 +607,7 @@ function Asteroids() {
 	var eventKeydown = function(event) {
 		event = event || window.event;
 		that.keysPressed[event.keyCode] = true;
+    that.keysPressed.hasKeyPressed = true;
 		
 		switch ( event.keyCode ) {
 			case code(' '):
@@ -801,7 +697,7 @@ function Asteroids() {
 		this.restore();
 	};
 	
-	var PI_SQ = Math.PI*2;
+	var PI_SQ = Math.PI * 2;
 	
 	this.ctx.drawBullets = function(bullets) {
 		for ( var i = 0; i < bullets.length; i++ ) {
@@ -880,6 +776,12 @@ function Asteroids() {
 		
 		this.scrollPos.x = window.pageXOffset || document.documentElement.scrollLeft;
 		this.scrollPos.y = window.pageYOffset || document.documentElement.scrollTop;
+
+    // send to socket if key was pressed
+    if (this.keysPressed.hasKeyPressed === true) {
+      AsteroidsOnline.socket.send({ x: this.pos.x, y: this.pos.y });
+      this.keysPressed.hasKeyPressed = false;
+    }
 		
 		// update player
 		// move forward
@@ -950,7 +852,7 @@ function Asteroids() {
 		
 		// add velocity to player (physics)
 		this.pos.add(this.vel.mulNew(tDelta));
-		
+
 		// check bounds X of player, if we go outside we scroll accordingly
 		if ( this.pos.x > w ) {
 			window.scrollTo(this.scrollPos.x + 50, this.scrollPos.y);
@@ -1029,18 +931,6 @@ function Asteroids() {
 		// drawing
 		// ==
 		
-		// Reposition the canvas area for IE quirks because it does not understand position: fixed
-		if ( isIEQuirks ) {
-			this.gameContainer.style.left =
-				this.canvas.style.left = document.documentElement.scrollLeft + "px";
-			this.gameContainer.style.top =
-				this.canvas.style.top = document.documentElement.scrollTop + "px";
-			
-			this.navigation.style.right = "10px";
-			this.navigation.style.top
-				= document.documentElement.scrollTop + document.body.clientHeight - this.navigation.clientHeight - 10 + "px";
-		}
-		
 		// clear
 		if ( forceChange || this.bullets.length != 0 || this.particles.length != 0 || ! this.pos.is(this.lastPos) || this.vel.len() > 0 ) {
 			this.ctx.clear();
@@ -1089,28 +979,53 @@ function Asteroids() {
 	};
 }
 
-if ( ! window.ASTEROIDSPLAYERS )
+if (!window.ASTEROIDSPLAYERS) {
 	window.ASTEROIDSPLAYERS = [];
-
-if ( window.ActiveXObject && ! document.createElement('canvas').getContext ) {
-	try {
-		var xamlScript = document.createElement('script');
-		xamlScript.setAttribute('type', 'text/xaml');
-		xamlScript.textContent = '<?xml version="1.0"?><Canvas xmlns="http://schemas.microsoft.com/client/2007"></Canvas>';
-		document.getElementsByTagName('head')[0].appendChild(xamlScript);
-	} catch ( e ) {}
-
-	var script = document.createElement("script");
-	script.setAttribute('type', 'text/javascript');
-	script.onreadystatechange = function() {
-		if ( script.readyState == 'loaded' || script.readyState == 'complete' ) {
-			if ( typeof G_vmlCanvasManager != "undefined" )
-				window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
-		}
-	};
-	script.src = "http://erkie.github.com/excanvas.js";
-	document.getElementsByTagName('head')[0].appendChild(script);
 }
-else window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
 
-})();
+var AsteroidsOnline = {
+  init: function () {
+    AsteroidsOnline.socket.connect();
+    window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
+  }
+};
+AsteroidsOnline.socket = new io.Socket("localhost", { port: 8080, rememberTransport: false });
+AsteroidsOnline.socket.on('message', function (obj) {
+console.log(obj);
+
+  // save user's client Id
+  if (obj.connected === true) {
+    // if it's not set, set the clientId for the current user.
+    // FIXME : HACK! -- this is a hack because what if another user's clientId arrives before this user gets it's clientId.
+    // solution: the client comes up with a clientId and sends it to the server.
+    if (!AsteroidsOnline.socket.clientId) {
+      AsteroidsOnline.socket.clientId = obj.clientId;
+    }
+  }
+
+  // if there's a new client && it's not your client ID
+  if (obj.clientId && obj.clientId !== AsteroidsOnline.socket.clientId) {
+
+    // grab the player on the screen FIXME - use canvas?
+    var el = document.getElementById(obj.clientId);
+
+    // if it exists, we update their position
+    if (el) {
+      el.style.top = obj.y + 'px';
+      el.style.left = obj.x + 'px';
+
+    // if it doesn't exist then we'll go ahead and create them
+    } else {
+      el = document.createElement('span');
+      el.id = obj.clientId;
+      el.style.position = 'absolute';
+      el.style.height = '20px';
+      el.style.width = '20px';
+      el.style.background = 'red';
+      el.style.top = obj.y + 'px';
+      el.style.left = obj.x + 'px';
+      document.body.appendChild(el);
+    }
+
+  }
+});
