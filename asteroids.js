@@ -18,6 +18,7 @@ function Asteroids() {
 			this.x = x;
 			this.y = y;
 		}
+    this.degrees = 180;
 	};
 	
 	Vector.prototype = {
@@ -60,8 +61,37 @@ function Asteroids() {
 			var x = this.x, y = this.y;
 			this.x = x * Math.cos(angle) - Math.sin(angle) * y;
 			this.y = x * Math.sin(angle) + Math.cos(angle) * y;
+
+      this.getDegrees(this.x, this.y);
+
 			return this;
 		},
+
+    getDegrees: function (x, y) {
+      var degrees = 0;
+
+      // hack, figure out the real math
+
+      // Ok
+      if (y > 0 & x > 0)
+        degrees = (y > x) ? (((y * 90) - (x * 45)) + 90) : (y * 90) + (x * 90);
+
+      else if (y > 0 & x < 0)
+        degrees = (y > (x * -1)) ? -1 * (((y * 90) + (x * 45)) + 90) : (x * 90) - (y * 90);
+
+      // Ok
+      else if (y < 0 & x < 0)
+        degrees = x * 90;
+
+      // Ok
+      else if (y < 0 & x > 0)
+        degrees = x * 90;
+
+
+      this.degrees = degrees;
+      
+      //console.log('%' + degrees);
+    },
 		
 		// angle still in radians
 		rotateNew: function(angle) {
@@ -198,7 +228,7 @@ function Asteroids() {
 	var bulletSpeed	  = 700;
 	var particleSpeed = 400;
 	
-	var timeBetweenFire = 150; // how many milliseconds between shots
+	var timeBetweenFire = 1000; // how many milliseconds between shots
 	var timeBetweenBlink = 250; // milliseconds between enemy blink
 	var timeBetweenEnemyUpdate = 2000;
 	var bulletRadius = 2;
@@ -221,7 +251,7 @@ function Asteroids() {
 
 	addStylesheet(".ASTEROIDSBLINK .ASTEROIDSYEAHENEMY", "outline: 2px dotted red;");
 	
-	this.pos = new Vector(100, 100);
+	this.pos = new Vector(Math.floor(Math.random() * window.innerWidth), Math.floor(Math.random() * window.innerHeight));
 	this.lastPos = false;
 	this.vel = new Vector(0, 0);
 	this.dir = new Vector(0, 1);
@@ -497,41 +527,7 @@ function Asteroids() {
 		right = "0px";
 		zIndex = "10000";
 	}
-	
-	// Is IE
-	if ( typeof G_vmlCanvasManager != 'undefined' ) {
-		this.canvas = G_vmlCanvasManager.initElement(this.canvas);
-		if ( ! this.canvas.getContext ) {
-			alert("So... you're using IE?  Please join me at http://github.com/erkie/erkie.github.com if you think you can help");
-		}
-	} else {
-		if ( ! this.canvas.getContext ) {
-			alert('This program does not yet support your browser. Please join me at http://github.com/erkie/erkie.github.com if you think you can help');
-		}
-	}
-	
-	addEvent(this.canvas, 'mousedown', function(e) {
-		e = e || window.event;
-		var message = document.createElement('span');
-		message.style.position = 'absolute';
-		message.style.border = '1px solid #999';
-		message.style.background = 'white';
-		message.style.color = "black";
-		message.innerHTML = 'Press Esc to quit';
-		document.body.appendChild(message);
-		
-		var x = e.pageX || (e.clientX + document.documentElement.scrollLeft);
-		var y = e.pageY || (e.clientY + document.documentElement.scrollTop);
-		message.style.left = x - message.offsetWidth/2 + 'px';
-		message.style.top = y - message.offsetHeight/2 + 'px';
-		
-		setTimeout(function() {
-			try {
-				message.parentNode.removeChild(message);
-			} catch ( e ) {}
-		}, 1000);
-	});
-	
+
 	var eventResize = function() {
 			w = document.documentElement.clientWidth;
 			h = document.documentElement.clientHeight;
@@ -611,7 +607,7 @@ function Asteroids() {
 		
 		switch ( event.keyCode ) {
 			case code(' '):
-				that.firedAt = 1;
+				//that.firedAt = 1;
 			break;
 		}
 		
@@ -777,9 +773,13 @@ function Asteroids() {
 		this.scrollPos.x = window.pageXOffset || document.documentElement.scrollLeft;
 		this.scrollPos.y = window.pageYOffset || document.documentElement.scrollTop;
 
+    // FIXME: need to only send if something has changed!
+    // josh
+    AsteroidsOnline.socket.send({ x: this.pos.x, y: this.pos.y, deg: this.dir.degrees });
+
     // send to socket if key was pressed
     if (this.keysPressed.hasKeyPressed === true) {
-      AsteroidsOnline.socket.send({ x: this.pos.x, y: this.pos.y });
+      //AsteroidsOnline.socket.send({ x: this.pos.x, y: this.pos.y, deg: this.dir.degrees });
       this.keysPressed.hasKeyPressed = false;
     }
 		
@@ -807,7 +807,8 @@ function Asteroids() {
 		}
 		
 		// fire
-		if ( this.keysPressed[code(' ')] && nowTime - this.firedAt > timeBetweenFire ) {
+		if ( this.keysPressed[code(' ')] && nowTime > (this.firedAt + timeBetweenFire) ) {
+
 			this.bullets.unshift({
 				'dir': this.dir.cp(),
 				'pos': this.pos.cp(),
@@ -989,9 +990,9 @@ var AsteroidsOnline = {
     window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
   }
 };
-AsteroidsOnline.socket = new io.Socket("localhost", { port: 8080, rememberTransport: false });
+AsteroidsOnline.socket = new io.Socket("192.168.1.16", { port: 8080, rememberTransport: false });
 AsteroidsOnline.socket.on('message', function (obj) {
-console.log(obj);
+//console.log(obj);
 
   // save user's client Id
   if (obj.connected === true) {
@@ -1013,15 +1014,17 @@ console.log(obj);
     if (el) {
       el.style.top = obj.y + 'px';
       el.style.left = obj.x + 'px';
+      el.style['-webkit-transform'] = 'rotate(' + obj.deg + 'deg)';
 
     // if it doesn't exist then we'll go ahead and create them
     } else {
-      el = document.createElement('span');
+      el = document.createElement('div');
       el.id = obj.clientId;
       el.style.position = 'absolute';
-      el.style.height = '20px';
-      el.style.width = '20px';
-      el.style.background = 'red';
+      el.style.height = '30px';
+      el.style.width = '30px';
+      el.style.backgroundImage = 'url(spaceships.png)';
+      // TODO randomly set background position
       el.style.top = obj.y + 'px';
       el.style.left = obj.x + 'px';
       document.body.appendChild(el);
