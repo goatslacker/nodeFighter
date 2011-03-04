@@ -279,14 +279,15 @@ function Asteroids() {
   // TODO - the enemies are other ships, not elements
 	function updateEnemyIndex() {
     var i = 0,
-        enemy = null;
+        enemy = null
+        el = null;
 
 		for ( i; enemy = that.enemies[i]; i++ )
 			removeClass(enemy, "ASTEROIDSYEAHENEMY");
 			
 		var all = document.body.getElementsByTagName('*');
 		that.enemies = [];
-		for ( i = 0, el; el = all[i]; i++ ) {
+		for ( i = 0; el = all[i]; i++ ) {
 			// elements with className ASTEROIDSYEAH are part of the "game"
 			if ( indexOf(ignoredTypes, el.tagName.toUpperCase()) == -1 && el.prefix != 'g_vml_' && hasOnlyTextualChildren(el) && el.className != "ASTEROIDSYEAH" && el.offsetHeight > 0 ) {
 				el.aSize = size(el);
@@ -691,7 +692,7 @@ function Asteroids() {
 		this.translate(that.pos.x, that.pos.y);
 		this.rotate(that.dir.angle());
 		this.tracePoly(playerVerts);
-		this.fillStyle = "white";
+		this.fillStyle = "red";
 		this.fill();
 		this.tracePoly(playerVerts);
 		this.stroke();
