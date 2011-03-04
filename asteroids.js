@@ -1,6 +1,14 @@
-// TODO remove all the IE code
+var Asteroids = null,
+    AsteroidsOnline = null;
 
-function Asteroids() {
+AsteroidsOnline = {
+  init: function () {
+    AsteroidsOnline.socket.connect();
+    window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
+  }
+};
+
+Asteroids = function () {
 	if ( ! window.ASTEROIDS )
 		window.ASTEROIDS = {
 			enemiesKilled: 0
@@ -249,9 +257,6 @@ function Asteroids() {
 		this.updated.blink.isActive = !this.updated.blink.isActive;
 	};
 
-	addStylesheet(".ASTEROIDSBLINK .ASTEROIDSYEAHENEMY", "outline: 2px dotted red;");
-	
-  this.enemy = [];
 	this.pos = new Vector(Math.floor(Math.random() * window.innerWidth), Math.floor(Math.random() * window.innerHeight));
 	this.lastPos = false;
 	this.vel = new Vector(0, 0);
@@ -278,8 +283,9 @@ function Asteroids() {
 	// things to shoot is everything textual and an element of type not specified in types AND not a navigation element (see further down)
   // TODO - the enemies are other ships, not elements
 	function updateEnemyIndex() {
+/*
     var i = 0,
-        enemy = null
+        enemy = null,
         el = null;
 
 		for ( i; enemy = that.enemies[i]; i++ )
@@ -302,6 +308,7 @@ function Asteroids() {
 				}
 			}
 		}
+*/
 	}
 	updateEnemyIndex();
 	
@@ -417,8 +424,10 @@ function Asteroids() {
 	}
 	
 	function applyVisibility(vis) {
-		for ( var i = 0, p; p = window.ASTEROIDSPLAYERS[i]; i++ ) {
-			p.gameContainer.style.visibility = vis;
+    var i = 0;
+
+		for ( i; i < ASTEROIDSPLAYERS.length; i++ ) {
+			ASTEROIDSPLAYERS[i].gameContainer.style.visibility = vis;
 		}
 	}
 	
@@ -504,6 +513,9 @@ function Asteroids() {
 		}
 		document.getElementsByTagName("head")[0].appendChild(stylesheet);
 	}
+
+	addStylesheet(".ASTEROIDSBLINK .ASTEROIDSYEAHENEMY", "outline: 2px dotted red;");
+	
 	
 	function removeStylesheet(name) {
 		var stylesheet = document.getElementById(name);
@@ -523,16 +535,16 @@ function Asteroids() {
 	this.canvas.setAttribute('width', w);
 	this.canvas.setAttribute('height', h);
 	this.canvas.className = 'ASTEROIDSYEAH';
-	with ( this.canvas.style ) {
-		width = w + "px";
-		height = h + "px";
-		position = "fixed";
-		top = "0px";
-		left = "0px";
-		bottom = "0px";
-		right = "0px";
-		zIndex = "10000";
-	}
+
+  var style = this.canvas.style;
+	style.width = w + "px";
+	style.height = h + "px";
+	style.position = "fixed";
+	style.top = "0px";
+	style.left = "0px";
+	style.bottom = "0px";
+	style.right = "0px";
+	style.zIndex = "10000";
 
 	var eventResize = function() {
 			w = document.documentElement.clientWidth;
@@ -554,14 +566,13 @@ function Asteroids() {
 		this.navigation = document.createElement('div');
 		this.navigation.id = "ASTEROIDS-NAVIGATION";
 		this.navigation.className = "ASTEROIDSYEAH";
-		with ( this.navigation.style ) {
-			fontFamily = "Arial,sans-serif";
-			position = "fixed";
-			zIndex = "10001";
-			bottom = "10px";
-			right = "10px";
-			textAlign = "right";
-		}
+    style = this.navigation.style;
+		style.fontFamily = "Arial,sans-serif";
+		style.position = "fixed";
+		style.zIndex = "10001";
+		style.bottom = "10px";
+		style.right = "10px";
+		style.textAlign = "right";
 		this.navigation.innerHTML = "(press esc to quit) ";
 		this.gameContainer.appendChild(this.navigation);
 		
@@ -597,9 +608,12 @@ function Asteroids() {
 	
 	// For ie
 	if ( typeof G_vmlCanvasManager != 'undefined' ) {
-		var children = this.canvas.getElementsByTagName('*');
-		for ( var i = 0, c; c = children[i]; i++ )
-			addClass(c, 'ASTEROIDSYEAH');
+		var children = this.canvas.getElementsByTagName('*'),
+        i = 0;
+
+		for (i; i < children.length; i++) {
+			addClass(children[i], 'ASTEROIDSYEAH');
+    }
 	}
 	
 	/*
@@ -611,11 +625,13 @@ function Asteroids() {
 		that.keysPressed[event.keyCode] = true;
     that.keysPressed.hasKeyPressed = true;
 		
-		switch ( event.keyCode ) {
-			case code(' '):
+/*
+		switch (event.keyCode) {
+		case code(' '):
 				//that.firedAt = 1;
 			break;
 		}
+*/
 		
 		// check here so we can stop propagation appropriately
 		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
@@ -742,7 +758,7 @@ function Asteroids() {
 		
 		this.strokeStyle = oldColor;
 		this.restore();
-	}
+	};
 	
 	/*
 		Game loop
@@ -960,7 +976,7 @@ function Asteroids() {
 			}
 		}
 		this.lastPos = this.pos;
-	}
+	};
 	
 	// Start timer
 	var updateFunc = function() {
@@ -983,19 +999,14 @@ function Asteroids() {
 		removeStylesheet("ASTEROIDSYEAHSTYLES");
 		removeClass(document.body, 'ASTEROIDSYEAH');
 		this.gameContainer.parentNode.removeChild(this.gameContainer);
-	};
-}
+	}
+
+};
 
 if (!window.ASTEROIDSPLAYERS) {
 	window.ASTEROIDSPLAYERS = [];
 }
 
-var AsteroidsOnline = {
-  init: function () {
-    AsteroidsOnline.socket.connect();
-    window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
-  }
-};
 AsteroidsOnline.socket = new io.Socket("192.168.1.16", { port: 8080, rememberTransport: false });
 AsteroidsOnline.socket.on('message', function (obj) {
 //console.log(obj);
