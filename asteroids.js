@@ -19,7 +19,7 @@ function Asteroids() {
 			this.y = y;
 		}
     this.degrees = 180;
-	};
+	}
 	
 	Vector.prototype = {
 		cp: function() {
@@ -160,7 +160,7 @@ function Asteroids() {
 	function Line(p1, p2) {
 		this.p1 = p1;
 		this.p2 = p2;
-	};
+	}
 	
 	Line.prototype = {
 		shift: function(pos) {
@@ -251,6 +251,7 @@ function Asteroids() {
 
 	addStylesheet(".ASTEROIDSBLINK .ASTEROIDSYEAHENEMY", "outline: 2px dotted red;");
 	
+  this.enemy = [];
 	this.pos = new Vector(Math.floor(Math.random() * window.innerWidth), Math.floor(Math.random() * window.innerHeight));
 	this.lastPos = false;
 	this.vel = new Vector(0, 0);
@@ -277,12 +278,15 @@ function Asteroids() {
 	// things to shoot is everything textual and an element of type not specified in types AND not a navigation element (see further down)
   // TODO - the enemies are other ships, not elements
 	function updateEnemyIndex() {
-		for ( var i = 0, enemy; enemy = that.enemies[i]; i++ )
+    var i = 0,
+        enemy = null;
+
+		for ( i; enemy = that.enemies[i]; i++ )
 			removeClass(enemy, "ASTEROIDSYEAHENEMY");
 			
 		var all = document.body.getElementsByTagName('*');
 		that.enemies = [];
-		for ( var i = 0, el; el = all[i]; i++ ) {
+		for ( i = 0, el; el = all[i]; i++ ) {
 			// elements with className ASTEROIDSYEAH are part of the "game"
 			if ( indexOf(ignoredTypes, el.tagName.toUpperCase()) == -1 && el.prefix != 'g_vml_' && hasOnlyTextualChildren(el) && el.className != "ASTEROIDSYEAH" && el.offsetHeight > 0 ) {
 				el.aSize = size(el);
@@ -297,7 +301,7 @@ function Asteroids() {
 				}
 			}
 		}
-	};
+	}
 	updateEnemyIndex();
 	
 	// createFlames create the vectors for the flames of the ship
@@ -312,18 +316,20 @@ function Asteroids() {
 			halfPlayerHeight = playerHeight / 2;
 
 		createFlames = function () {
+      var x = 0;
+
 			// Firstly create red flames
 			that.flame.r = [[-1 * halfPlayerHeight, -1 * halfR]];
 			that.flame.y = [[-1 * halfPlayerHeight, -1 * halfY]];
 
-			for ( var x = 0; x < rWidth; x += rIncrease ) {
+			for ( x = 0; x < rWidth; x += rIncrease ) {
 				that.flame.r.push([-random(2, 7) - halfPlayerHeight, x - halfR]);
 			}
 
 			that.flame.r.push([-1 * halfPlayerHeight, halfR]);
 			
 			// ... And now the yellow flames
-			for ( var x = 0; x < yWidth; x += yIncrease ) {
+			for ( x = 0; x < yWidth; x += yIncrease ) {
 				that.flame.y.push([-random(2, 7) - halfPlayerHeight, x - halfY]);
 			}
 
@@ -339,15 +345,15 @@ function Asteroids() {
 	
 	function radians(deg) {
 		return deg * 0.0174532925;
-	};
+	}
 	
 	function degrees(rad) {
 		return rad * 57.2957795;
-	};
+	}
 	
 	function random(from, to) {
 		return Math.floor(Math.random() * (to + 1) + from);
-	};
+	}
 	
 	/*
 		Misc operations
@@ -357,7 +363,7 @@ function Asteroids() {
 		var table = {'up': 38, 'down': 40, 'left': 37, 'right': 39, 'esc': 27};
 		if ( table[name] ) return table[name];
 		return name.charCodeAt(0);
-	};
+	}
 	
 	function boundsCheck(vec) {
 		if ( vec.x > w )
@@ -369,7 +375,7 @@ function Asteroids() {
 			vec.y = 0;
 		else if ( vec.y < 0 )
 			vec.y = h;	
-	};
+	}
 	
 	function size(element) {
 		var el = element, left = 0, top = 0;
@@ -379,7 +385,7 @@ function Asteroids() {
 			el = el.offsetParent;
 		} while (el);
 		return {x: left, y: top, width: element.offsetWidth || 10, height: element.offsetHeight || 10};
-	};
+	}
 	
 	// Taken from:
 	// http://www.quirksmode.org/blog/archives/2005/10/_and_the_winner_1.html
@@ -388,7 +394,7 @@ function Asteroids() {
 			obj.addEventListener( type, fn, false );
 		else if (obj.attachEvent) {
 			obj["e"+type+fn] = fn;
-			obj[type+fn] = function() { obj["e"+type+fn]( window.event ); }
+			obj[type+fn] = function() { obj["e"+type+fn]( window.event ); };
 			obj.attachEvent( "on"+type, obj[type+fn] );
 		}
 	}
@@ -407,7 +413,7 @@ function Asteroids() {
 		var rest = array.slice((to || from) + 1 || array.length);
 		array.length = from < 0 ? array.length + from : from;
 		return array.push.apply(array, rest);
-	};
+	}
 	
 	function applyVisibility(vis) {
 		for ( var i = 0, p; p = window.ASTEROIDSPLAYERS[i]; i++ ) {
@@ -432,7 +438,7 @@ function Asteroids() {
 		// show the canvas again, hopefully it didn't blink
 		applyVisibility('visible');
 		return element;
-	};
+	}
 	
 	function addParticles(startPos) {
 		var time = new Date().getTime();
@@ -445,11 +451,11 @@ function Asteroids() {
 				cameAlive: time
 			});
 		}
-	};
+	}
 	
 	function setScore() {
 		that.points.innerHTML = window.ASTEROIDS.enemiesKilled * 10;
-	};
+	}
 	
 	function hasOnlyTextualChildren(element) {
 		if ( element.offsetLeft < -100 && element.offsetWidth > 0 && element.offsetHeight > 0 ) return false;
@@ -458,13 +464,12 @@ function Asteroids() {
 		if ( element.offsetWidth == 0 && element.offsetHeight == 0 ) return false;
 		for ( var i = 0; i < element.childNodes.length; i++ ) {
 			// <br /> doesn't count... and empty elements
-			if (
-				indexOf(hiddenTypes, element.childNodes[i].tagName) == -1
-				&& element.childNodes[i].childNodes.length != 0
-			) return false;
+			if (indexOf(hiddenTypes, element.childNodes[i].tagName) == -1 && element.childNodes[i].childNodes.length != 0) {
+        return false;
+      }
 		}
 		return true;
-	};
+	}
 	
 	function indexOf(arr, item, from){
 		if ( arr.indexOf ) return arr.indexOf(item, from);
@@ -473,18 +478,18 @@ function Asteroids() {
 			if (arr[i] === item) return i;
 		}
 		return -1;
-	};
+	}
 	
 	// taken from MooTools Core
 	function addClass(element, className) {
 		if ( element.className.indexOf(className) == -1)
 			element.className = (element.className + ' ' + className).replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
-	};
+	}
 	
 	// taken from MooTools Core
 	function removeClass(element, className) {
 		element.className = element.className.replace(new RegExp('(^|\\s)' + className + '(?:\\s|$)'), '$1');
-	};
+	}
 	
 	function addStylesheet(selector, rules) {
 		var stylesheet = document.createElement('style');
@@ -497,14 +502,14 @@ function Asteroids() {
 			stylesheet.styleSheet.addRule(selector, rules);
 		}
 		document.getElementsByTagName("head")[0].appendChild(stylesheet);
-	};
+	}
 	
 	function removeStylesheet(name) {
 		var stylesheet = document.getElementById(name);
 		if ( stylesheet ) {
 			stylesheet.parentNode.removeChild(stylesheet);
 		}
-	};
+	}
 	
 	/*
 		== Setup ==
