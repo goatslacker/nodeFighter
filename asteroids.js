@@ -4,7 +4,7 @@ var Asteroids = null,
 AsteroidsOnline = {
   init: function () {
     AsteroidsOnline.socket.connect();
-    window.ASTEROIDSPLAYERS[window.ASTEROIDSPLAYERS.length] = new Asteroids();
+    this.player = new Asteroids();
   }
 };
 
@@ -424,11 +424,7 @@ Asteroids = function () {
 	}
 	
 	function applyVisibility(vis) {
-    var i = 0;
-
-		for ( i; i < ASTEROIDSPLAYERS.length; i++ ) {
-			ASTEROIDSPLAYERS[i].gameContainer.style.visibility = vis;
-		}
+  	AsteroidsOnline.player.gameContainer.style.visibility = vis;
 	}
 	
 	function getElementFromPoint(x, y) {
@@ -796,8 +792,12 @@ Asteroids = function () {
 		this.scrollPos.y = window.pageYOffset || document.documentElement.scrollTop;
 
     // FIXME: need to only send if something has changed!
-    // josh
-    AsteroidsOnline.socket.send({ x: this.pos.x, y: this.pos.y, deg: this.dir.degrees });
+    AsteroidsOnline.socket.send({ 
+      x: this.pos.x,
+      y: this.pos.y,
+      deg: this.dir.degrees,
+      bullets: this.bullets
+    });
 
     // send to socket if key was pressed
     if (this.keysPressed.hasKeyPressed === true) {
@@ -1003,10 +1003,6 @@ Asteroids = function () {
 
 };
 
-if (!window.ASTEROIDSPLAYERS) {
-	window.ASTEROIDSPLAYERS = [];
-}
-
 AsteroidsOnline.socket = new io.Socket("192.168.1.16", { port: 8080, rememberTransport: false });
 AsteroidsOnline.socket.on('message', function (obj) {
 //console.log(obj);
@@ -1025,13 +1021,20 @@ AsteroidsOnline.socket.on('message', function (obj) {
   if (obj.clientId && obj.clientId !== AsteroidsOnline.socket.clientId) {
 
     // grab the player on the screen FIXME - use canvas?
-    var el = document.getElementById(obj.clientId);
+    var el = document.getElementById(obj.clientId),
+        bullets = obj.bullets;
 
     // if it exists, we update their position
     if (el) {
       el.style.top = obj.y + 'px';
       el.style.left = obj.x + 'px';
       el.style['-webkit-transform'] = 'rotate(' + obj.deg + 'deg)';
+
+      if (bullets.length > 0) {
+        // FIXME, it's a hack for now!
+        //AsteroidsOnline.player.ctx.clear();
+        AsteroidsOnline.player.ctx.drawBullets(bullets);
+      }
 
     // if it doesn't exist then we'll go ahead and create them
     } else {
@@ -1046,6 +1049,7 @@ AsteroidsOnline.socket.on('message', function (obj) {
       el.style.left = obj.x + 'px';
       document.body.appendChild(el);
     }
+
 
   }
 });
