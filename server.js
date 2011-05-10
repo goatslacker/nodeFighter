@@ -4,7 +4,8 @@ var http = require('http'),
     fs = require('fs'),
     io = require('./lib/socket.io'),
     sys = require(process.binding('natives').util ? 'util' : 'sys'),
-    server = null;
+    server = null,
+    clients = {};
     
 function send404(res) {
   res.writeHead(404);
@@ -37,20 +38,33 @@ server.listen(808);
 io = io.listen(server);
   
 io.on('connection', function (client) {
-  client.send({ connected: true, clientId: client.sessionId });
 
-  client.broadcast({ connected: true, clientId: client.sessionId });
+  // send all current clients to app
+  client.send({ connected: true, clients: clients });
+
+  // add this new client
+  clients[client.sessionId] = true;
+
+  // let everyone know there's a new player in town
+  client.broadcast({ newPlayer: true, client: client.sessionId });
 
   client.on('message', function (message) {
     message.clientId = client.sessionId;
-    console.log(message);
-    client.send(message);
-    client.broadcast(message);
+
+    // initial connection, client sent us a guid, we send them back their client id
+    if (message.guid) {
+      message.connected = true;
+
+      // send message back to client
+      client.send(message);
+    }
   });
 
   client.on('disconnect', function () {
-    // log on server ??
-    client.broadcast({ announcement: client.sessionId + ' disconnected' });
+    delete clients[client.sessionId];
+
+    // player disconnected D:
+    client.broadcast({ delPlayer: true, client: client.sessionId });
   });
 });
 

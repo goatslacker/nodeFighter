@@ -21,7 +21,7 @@
 	distribution.
 */
 
-(function() {
+var KickAss = (function(window) {
 	/*
 		Function:
 			Class
@@ -764,6 +764,7 @@
 			this.generateFlames();
 		},
 		
+    // FIXME -- add the hooks here
 		update: function(tdelta) {
 			// Rotation
 			if (this.game.isKeyPressed('left') || this.game.isKeyPressed('right')) {
@@ -1775,14 +1776,60 @@
 		}
 	});
 	
-	var initKickAss = function() {
-		// If an instance of KickAss is already present, we add a player
-		if (!window.KICKASSGAME) {
-			window.KICKASSGAME = new KickAss();
-			window.KICKASSGAME.begin();
-		} else
-			window.KICKASSGAME.addPlayer();
+	KickAss.newGame = function() {
+    // connect to socket
+    KickAss.socket.connect();
+
+    // if some time has passed and we're still not connected, offer a message
+    setTimeout(function () {
+      if (typeof(KickAss.GUID) === "undefined") {
+        alert("We seem to have issues connecting to the server, try again later?");
+      }
+    }, 20000);
 	};
-	
-	initKickAss();
-})();
+
+  KickAss.socket = new io.Socket("127.0.0.1", { port: 808, rememberTransport: false });
+  KickAss.socket.on('connect', function () {
+    // generate UID
+    KickAss.GUID = (function () {
+      var id = "",
+          i = 0;
+      for (i; i < 4; i = i + 1) {
+        id = id + ((((1+Math.random())*0x10000)|0).toString(16).substring(1));
+      }
+      return id;
+    }());
+
+    // tell the server our ID
+    KickAss.socket.send({ guid: KickAss.GUID });
+  });
+
+  KickAss.socket.on('message', function (obj) {
+    // initial connection logic
+    if (obj.connected === true) {
+      if ("clients" in obj) {
+        // TODO loop through and add all these players
+      }
+
+      // set the proper ID for the client
+      if (obj.guid === KickAss.GUID) {
+        KickAss.GUID = obj.clientId;
+
+        // start game
+        if (!window.KICKASSGAME) {
+          window.KICKASSGAME = new KickAss();
+          window.KICKASSGAME.begin();
+        }
+      }
+    }
+
+    // new player :D
+    if (obj.newPlayer === true) {
+      console.log('new player');
+    }
+    
+  });
+
+  return KickAss;
+
+})(this);
