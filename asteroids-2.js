@@ -30,17 +30,17 @@
 	*/
 	var Class = function(methods) {
 		var ret = function() {
-			if ( methods && typeof methods.initialize == 'function' )
+			if (methods && typeof methods.initialize == 'function')
 				return methods.initialize.apply(this, arguments);
 		};
 		
-		for ( var key in methods ) if ( methods.hasOwnProperty(key) )
+		for (var key in methods) if (methods.hasOwnProperty(key))
 			ret.prototype[key] = methods[key];
 		
 		return ret;
 	};
 	
-	if ( ! Array.prototype.indexOf ) {
+	if (!Array.prototype.indexOf) {
 		// Found at: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
 		Array.prototype.indexOf = function(searchElement) {
 			if (this === void 0 || this === null)
@@ -79,7 +79,7 @@
 	
 	var Vector = new Class({
 		initialize: function(x, y) {
-			if ( typeof x == 'Object' ) {
+			if (typeof x == 'Object') {
 				this.x = x.x;
 				this.y = x.y;
 			} else {
@@ -150,7 +150,7 @@
 
 		setLength: function(length) {
 			var l = this.len();
-			if ( l ) this.mul(length / l);
+			if (l) this.mul(length / l);
 			else this.x = this.y = length;
 			return this;
 		},
@@ -161,7 +161,7 @@
 
 		normalize: function() {
 			var l = this.len();
-			if ( l == 0 )
+			if (l == 0)
 				return this;
 			this.x /= l;
 			this.y /= l;
@@ -182,7 +182,7 @@
 
 		len: function() {
 			var l = Math.sqrt(this.x * this.x + this.y * this.y);
-			if ( l < 0.005 && l > -0.005) return 0;
+			if (l < 0.005 && l > -0.005) return 0;
 			return l;
 		},
 
@@ -258,10 +258,10 @@
 	
 	function each(arr, func, bindObject) {
 		// This is the same function as the native Array.prototype.forEach
-		if ( typeof arr.forEach == 'function' )
+		if (typeof arr.forEach == 'function')
 			return arr.forEach(func, bindObject);
 		
-		for ( var key in arr ) if ( arr.hasOwnProperty(key) ) 
+		for (var key in arr) if (arr.hasOwnProperty(key)) 
 			func.call(bindObject || window, arr[key], key);
 	}
 	
@@ -280,13 +280,13 @@
 			(function) fn - The function to call upon the event
 	*/
 	
-	function addEvent( obj, type, fn ) {
+	function addEvent(obj, type, fn) {
 		if (obj.addEventListener)
-			obj.addEventListener( type, fn, false );
+			obj.addEventListener(type, fn, false);
 		else if (obj.attachEvent) {
 			obj["e"+type+fn] = fn;
-			obj[type+fn] = function() { obj["e"+type+fn]( window.event ); }
-			obj.attachEvent( "on"+type, obj[type+fn] );
+			obj[type+fn] = function() { obj["e"+type+fn](window.event); }
+			obj.attachEvent("on"+type, obj[type+fn]);
 		}
 	}
 	
@@ -302,11 +302,11 @@
 			(function) fn - The function to remove
 	*/
 
-	function removeEvent( obj, type, fn ) {
+	function removeEvent(obj, type, fn) {
 		if (obj.removeEventListener)
-			obj.removeEventListener( type, fn, false );
+			obj.removeEventListener(type, fn, false);
 		else if (obj.detachEvent) {
-			obj.detachEvent( "on"+type, obj[type+fn] );
+			obj.detachEvent("on"+type, obj[type+fn]);
 			obj[type+fn] = null;
 			obj["e"+type+fn] = null;
 		}
@@ -324,7 +324,7 @@
 	*/
 	
 	function elementIsContainedIn(element1, element2) {
-		if ( element.contains )
+		if (element.contains)
 			return element1.contains(element2);
 		return !!(element1.compareDocumentPosition(element2) & 16);
 	};
@@ -345,7 +345,7 @@
 	
 	function code(name) {
 		var table = {38: 'up', 40: 'down', 37: 'left', 39: 'right', 27: 'esc'};
-		if ( table[name] ) return table[name];
+		if (table[name]) return table[name];
 		return String.fromCharCode(name);
 	};
 	
@@ -426,7 +426,7 @@
 			var c = code(e.keyCode);
 			this.keyMap[c] = true;
 			
-			switch ( c) {
+			switch (c) {
 				// These events should be stopped
 				case 'left':
 				case 'right':
@@ -434,15 +434,15 @@
 				case 'down':
 				case 'esc':
 				case ' ':
-					if ( e.stopPropogation )
+					if (e.stopPropogation)
 						e.stopPropogation();
-					if ( e.preventDefault )
+					if (e.preventDefault)
 						e.preventDefault();
 					e.returnValue = false;
 				break;
 			}
 			
-			switch ( c ) {
+			switch (c) {
 				case 'esc':
 					this.destroy();
 					break;
@@ -453,7 +453,7 @@
 			var c = code(e.keyCode);
 			this.keyMap[c] = false;
 			
-			switch ( c ) {
+			switch (c) {
 				// These events should be stopped
 				case 'left':
 				case 'right':
@@ -461,9 +461,9 @@
 				case 'down':
 				case 'esc':
 				case ' ':
-					if ( e.stopPropogation )
+					if (e.stopPropogation)
 						e.stopPropogation();
-					if ( e.preventDefault )
+					if (e.preventDefault)
 						e.preventDefault();
 					e.returnValue = false;
 				break;
@@ -486,7 +486,7 @@
 			this.updateWindowInfo();
 			
 			// Update every player
-			for ( var i = 0, player; player = this.players[i]; i++ )
+			for (var i = 0, player; player = this.players[i]; i++)
 				player.update(tdelta);
 			
 			// Update bullets
@@ -553,8 +553,8 @@
 		*/
 		
 		isKickAssElement: function(el) {
-			for ( var i = 0, element; element = this.elements[i]; i++ ) {
-				if ( el === element || elementIsContainedIn(element, el) )
+			for (var i = 0, element; element = this.elements[i]; i++) {
+				if (el === element || elementIsContainedIn(element, el))
 					return true;
 			}
 			return false;
@@ -574,7 +574,7 @@
 		*/
 		
 		isKeyPressed: function(key) {
-			return !! this.keyMap[key];
+			return !!this.keyMap[key];
 		},
 		
 		/*
@@ -585,17 +585,10 @@
 		*/
 		
 		updateWindowInfo: function() {
-			var isIEQuirks = (!!window.ActiveXObject) && document.compatMode == "BackCompat";
-			
 			this.windowSize = {
 				width: document.documentElement.clientWidth,
 				height: document.documentElement.clientHeight
 			};
-			
-			if ( isIEQuirks ) {
-				this.windowSize.width = document.body.clientWidth;
-				this.windowSize.height = document.body.clientHeight;
-			}
 			
 			this.scrollPos.x = window.pageXOffset || document.documentElement.scrollLeft;
 			this.scrollPos.y = window.pageYOffset || document.documentElement.scrollTop;
@@ -610,7 +603,7 @@
 		*/
 		
 		hideAll: function() {
-			for ( var i = 0, el; el = this.elements[i]; i++ )
+			for (var i = 0, el; el = this.elements[i]; i++)
 				el.style.visibility = 'hidden';
 		},
 		
@@ -622,7 +615,7 @@
 		*/
 		
 		showAll: function() {
-			for ( var i = 0, el; el = this.elements[i]; i++ )
+			for (var i = 0, el; el = this.elements[i]; i++)
 				el.style.visibility = 'visible';
 		},
 		
@@ -640,7 +633,7 @@
 			removeEvent(document, 'keyup', this.keyupEvent);
 			
 			// Destroy everything
-			for ( var i = 0, player; player = this.players[i]; i++ )
+			for (var i = 0, player; player = this.players[i]; i++)
 				player.destroy();
 			
 			this.bulletManager.destroy();
@@ -669,7 +662,7 @@
 			this.container = document.createElement('div');
 			this.container.className = 'KICKASSELEMENT';
 			
-			with ( this.container.style ) {
+			with (this.container.style) {
 				position = 'fixed';
 				bottom = '20px';
 				right = '20px';
@@ -773,23 +766,23 @@
 		
 		update: function(tdelta) {
 			// Rotation
-			if ( this.game.isKeyPressed('left') || this.game.isKeyPressed('right') ) {
-				if ( this.game.isKeyPressed('left') )
+			if (this.game.isKeyPressed('left') || this.game.isKeyPressed('right')) {
+				if (this.game.isKeyPressed('left'))
 					this.rotateLeft();
-				if ( this.game.isKeyPressed('right') )
+				if (this.game.isKeyPressed('right'))
 					this.rotateRight();
 			} else {
 				this.stopRotate();
 			}
 			
 			// Activate thrusters!
-			if ( this.game.isKeyPressed('up') )
+			if (this.game.isKeyPressed('up'))
 				this.activateThrusters();
 			else
 				this.stopThrusters();
 			
 			// Add rotation
-			if ( this.currentRotation )
+			if (this.currentRotation)
 				this.dir.setAngle(this.dir.angle() + this.currentRotation*tdelta);
 			
 			// Add acceleration to velocity
@@ -800,28 +793,28 @@
 			this.vel.add(frictionedAcc);
 			
 			// Cap velocity
-			if ( this.vel.len() > this.terminalVelocity )
+			if (this.vel.len() > this.terminalVelocity)
 				this.vel.setLength(this.terminalVelocity);
 			
 			// Add velocity to position
 			this.pos.add(this.vel.mulNew(tdelta));
 			
 			// Update flames?
-			if ( now() - this.lastFrameUpdate > 1000/15 )
+			if (now() - this.lastFrameUpdate > 1000/15)
 				this.generateFlames();
 			
 			// Check bounds and update accordingly
 			this.checkBounds();
 			
 			// Only update canvas if any changes have occured
-			if ( ! this.lastPos.is(this.pos) || this.currentRotation ) {
+			if (!this.lastPos.is(this.pos) || this.currentRotation) {
 				// Draw changes onto canvas
 				this.sheet.clear();
 				this.sheet.setAngle(this.dir.angle());
 				this.sheet.setPosition(this.pos);
 				
 				// Draw flames if thrusters are activated
-				if ( ! this.acc.is({x: 0, y: 0}) ) {
+				if (!this.acc.is({x: 0, y: 0})) {
 					this.sheet.drawFlames(this.flames);
 				}
 				
@@ -852,13 +845,13 @@
 			this.flames.r = [[-1 * halfPlayerHeight, -1 * halfR]];
 			this.flames.y = [[-1 * halfPlayerHeight, -1 * halfY]];
 
-			for ( var x = 0; x < rWidth; x += rIncrease )
+			for (var x = 0; x < rWidth; x += rIncrease)
 				this.flames.r.push([-random(2, 7) - halfPlayerHeight, x - halfR]);
 
 			this.flames.r.push([-1 * halfPlayerHeight, halfR]);
 			
 			// And the yellow flames
-			for ( var x = 0; x < yWidth; x += yIncrease )
+			for (var x = 0; x < yWidth; x += yIncrease)
 				this.flames.y.push([-random(2, 7) - halfPlayerHeight, x - halfY]);
 
 			this.flames.y.push([-1 * halfPlayerHeight, halfY]);
@@ -885,19 +878,19 @@
 			var bottomBound = this.pos.y + this.sheet.rect.size.height/2;
 			
 			// Check bounds X
-			if ( rightBound > w ) {
+			if (rightBound > w) {
 				window.scrollTo(this.game.scrollPos.x + 50, this.game.scrollPos.y);
 				this.pos.x = 0;
-			} else if ( this.pos.x < 0 ) {
+			} else if (this.pos.x < 0) {
 				window.scrollTo(this.game.scrollPos.x - 50, this.game.scrollPos.y);
 				this.pos.x = w - this.sheet.rect.size.width/2;
 			}
 			
 			// check bounds Y
-			if ( bottomBound > h ) {
+			if (bottomBound > h) {
 				window.scrollTo(this.game.scrollPos.x, this.game.scrollPos.y + h * 0.75);
 				this.pos.y = 0;
-			} else if ( this.pos.y < 0 ) {
+			} else if (this.pos.y < 0) {
 				window.scrollTo(this.game.scrollPos.x, this.game.scrollPos.y - h * 0.75);
 				this.pos.y = h - this.sheet.rect.size.height/2;
 			}
@@ -950,31 +943,31 @@
 		
 		update: function(tdelta) {
 			// If spacebar is pressed down, and only shoot every 0.1 second
-			if ( this.game.isKeyPressed(' ') && now() - this.lastFired > 100 ) {
-				for ( var i = 0, player; player = this.game.players[i]; i++ )
+			if (this.game.isKeyPressed(' ') && now() - this.lastFired > 100) {
+				for (var i = 0, player; player = this.game.players[i]; i++)
 					this.addBulletFromPlayer(player);
 				this.lastFired = now();
 			}
 			
 			// If B is pressed, show remaining enemies
-			if ( this.game.isKeyPressed('B') ) {
+			if (this.game.isKeyPressed('B')) {
 				this.blink();
 			} else {
 				this.endBlink();
 			}
 			
-			for ( var key in this.bullets ) if ( this.bullets.hasOwnProperty(key) ) {
+			for (var key in this.bullets) if (this.bullets.hasOwnProperty(key)) {
 				var time = now(); // the time... is now
 				
 				// Remove bullets older than 2 seconds
-				for ( var i = 0, bullet; bullet = this.bullets[key][i]; i++ ) {
-					if ( time - bullet.bornAt > 2000 ) {
+				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++) {
+					if (time - bullet.bornAt > 2000) {
 						bullet.destroy();
 						this.bullets[key].splice(i, 1);
 					}
 				}
 			
-				for ( var i = 0, bullet; bullet = this.bullets[key][i]; i++ ) {
+				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++) {
 					bullet.update(tdelta);
 					
 					// Hide everything related to this game so it can't be hit
@@ -983,7 +976,7 @@
 					var hit = bullet.checkCollision();
 					
 					// If we hit something remove the element, add an explosion and remove the bullet
-					if ( hit ) {
+					if (hit) {
 						this.game.explosionManager.addExplosion(bullet.pos);
 						this.game.menuManager.addPoints(hit.getElementsByTagName('*').length + 1);
 						
@@ -1007,17 +1000,17 @@
 		*/
 		
 		blink: function() {
-			if ( now() - this.lastBlink > 250 ) {
-				for ( var i = 0, el; el = this.enemyIndex[i]; i++ ) {
-					if ( ! this.blinkActive )
+			if (now() - this.lastBlink > 250) {
+				for (var i = 0, el; el = this.enemyIndex[i]; i++) {
+					if (!this.blinkActive)
 						el.style.outline = '1px solid red';
 					else
 						el.style.outline = el.KICKASSOLDBORDER;
 				}					
-				this.blinkActive = ! this.blinkActive;
+				this.blinkActive = !this.blinkActive;
 				this.lastBlink = now();
 				
-				if ( ! this.blinkActive ) {
+				if (!this.blinkActive) {
 					this.updateEnemyIndex();
 				}
 			}
@@ -1033,8 +1026,8 @@
 		endBlink: function() {
 			// endBlink is called every run loop if B isn't pressed, so only
 			// reset everything if there is something to reset
-			if ( this.enemyIndex.length ) {
-				for ( var i = 0, el; el = this.enemyIndex[i]; i++ )
+			if (this.enemyIndex.length) {
+				for (var i = 0, el; el = this.enemyIndex[i]; i++)
 					el.style.outline = el.KICKASSOLDBORDER;
 				
 				this.enemyIndex = [];
@@ -1054,8 +1047,8 @@
 			var all = document.getElementsByTagName('*');
 			this.enemyIndex = [];
 			
-			for ( var i = 0, el; el = all[i]; i++ ) {
-				if ( this.hasOnlyTextualChildren(el) ) {
+			for (var i = 0, el; el = all[i]; i++) {
+				if (this.hasOnlyTextualChildren(el)) {
 					this.enemyIndex.push(el);
 					
 					el.KICKASSOLDBORDER = el.style.outline || (document.defaultView.getComputedStyle(el, null).outline);
@@ -1074,7 +1067,7 @@
 			var pid = player.id;
 			
 			// If the player has more than 10 bullets, remove the oldest one
-			if (this.bullets[pid] && this.bullets[pid].length > 10 ) {
+			if (this.bullets[pid] && this.bullets[pid].length > 10) {
 				this.bullets[pid][0].destroy();
 				this.bullets[pid].shift();
 			}
@@ -1089,7 +1082,7 @@
 			bullet.vel.add(bullet.vel.cp().setLength(player.vel.len()));
 			
 			// Bullets are stored per ship, ensure we have an array for this ship
-			if ( ! this.bullets[pid] )
+			if (!this.bullets[pid])
 				this.bullets[pid] = [];
 			
 			this.bullets[pid].push(bullet);
@@ -1105,23 +1098,23 @@
 		*/
 		
 		hasOnlyTextualChildren: function(element) {
-			if ( element == document.defaultView || element == document.body)
+			if (element == document.defaultView || element == document.body)
 				return false;
 			
-			if ( element.className && element.className.indexOf('KICKASSELEMENT') != -1 )
+			if (element.className && element.className.indexOf('KICKASSELEMENT') != -1)
 				return false;
 			
-			for ( var i = 0; i < element.childNodes.length; i++ ) {
+			for (var i = 0; i < element.childNodes.length; i++) {
 				if (element.childNodes[i].childNodes[0]) {
 					var children = element.childNodes;
-					for ( var i = 0, child; child = children[i]; i++ ) {
-						if ( child.nodeType != 1 || child.style.visibility == 'hidden' || child.style.display == 'none' )
+					for (var i = 0, child; child = children[i]; i++) {
+						if (child.nodeType != 1 || child.style.visibility == 'hidden' || child.style.display == 'none')
 							continue;
 						
-						if ( child.offsetHeight == 0 || child.offsetWidth == 0 )
+						if (child.offsetHeight == 0 || child.offsetWidth == 0)
 							continue;
 						
-						if ( ELEMENTSTHATCOUNTASTEXTUAL.indexOf(child.tagName) == -1 && ELEMENTSTHATARENOTTOBEINCLUDED.indexOf(child.tagName) == -1 )
+						if (ELEMENTSTHATCOUNTASTEXTUAL.indexOf(child.tagName) == -1 && ELEMENTSTHATARENOTTOBEINCLUDED.indexOf(child.tagName) == -1)
 							return false;
 					}
 				}
@@ -1130,8 +1123,8 @@
 		},
 		
 		destroy: function() {
-			for ( var key in this.bullets ) if ( this.bullets.hasOwnProperty(key) ) 
-				for ( var i = 0, bullet; bullet = this.bullets[key][i]; i++ )
+			for (var key in this.bullets) if (this.bullets.hasOwnProperty(key)) 
+				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++)
 					bullet.destroy();
 			this.bullets = {};
 		}
@@ -1180,7 +1173,7 @@
 		
 		checkCollision: function() {
 			var element = document.elementFromPoint(this.pos.x, this.pos.y);
-			if ( element && element.nodeType == 3 )
+			if (element && element.nodeType == 3)
 				element = element.parentNode;
 			return element && element != document.documentElement && this.manager.hasOnlyTextualChildren(element) ? element : false;
 		},
@@ -1194,15 +1187,15 @@
 			var bottomBound = this.pos.y + this.sheet.rect.size.height/2;
 			
 			// Check bounds X
-			if ( rightBound > w )
+			if (rightBound > w)
 				this.pos.x = 0;
-			else if ( this.pos.x < 0 )
+			else if (this.pos.x < 0)
 				this.pos.x = w - this.sheet.rect.size.width/2;
 			
 			// Check bounds Y
-			if ( bottomBound > h )
+			if (bottomBound > h)
 				this.pos.y = 0;
-			else if ( this.pos.y < 0 )
+			else if (this.pos.y < 0)
 				this.pos.y = h - this.sheet.rect.size.height/2;
 		},
 		
@@ -1226,9 +1219,9 @@
 		update: function(tdelta) {
 			var time = now();
 			
-			for ( var i = 0, explosion; explosion = this.explosions[i]; i++ ) {
+			for (var i = 0, explosion; explosion = this.explosions[i]; i++) {
 				// Remove explosions older than 0.3 seconds
-				if ( time - explosion.bornAt > 300 ) {
+				if (time - explosion.bornAt > 300) {
 					explosion.destroy();
 					this.explosions.splice(i, 1);
 					continue;
@@ -1258,7 +1251,7 @@
 		},
 		
 		destroy: function() {
-			for ( var i = 0, explosion; explosion = this.explosions[i]; i++ )
+			for (var i = 0, explosion; explosion = this.explosions[i]; i++)
 				explosion.destroy();
 			this.explosions = [];
 		}
@@ -1285,8 +1278,8 @@
 		update: function(tdelta) {
 			var vel = this.particleVel.mulNew(tdelta);
 			
-			for ( var i = 0, particle; particle = this.particles[i]; i++ )
-				particle.pos.add( particle.vel.mulNew(tdelta).mul(random(0.5, 1.0)).setAngle(particle.dir.angle()) );
+			for (var i = 0, particle; particle = this.particles[i]; i++)
+				particle.pos.add(particle.vel.mulNew(tdelta).mul(random(0.5, 1.0)).setAngle(particle.dir.angle()));
 			
 			this.sheet.clear();
 			this.sheet.drawExplosion(this.particles);
@@ -1303,7 +1296,7 @@
 			this.particles = [];
 			
 			// Generate 
-			for ( var i = 0, j = (typeof Raphael != 'undefined') ? 10 : 40; i < j; i++ ) {
+			for (var i = 0, j = (typeof Raphael != 'undefined') ? 10 : 40; i < j; i++) {
 				this.particles.push({
 					dir: (new Vector(random(0, 20)-10, random(0, 20)-10)).normalize(),
 					vel: this.particleVel.cp(),
@@ -1328,9 +1321,9 @@
 			var w = this.game.windowSize.width;
 			var h = this.game.windowSize.height;
 			
-			if ( right > w )
+			if (right > w)
 				this.pos.x -= right - w;
-			if ( bottom > h )
+			if (bottom > h)
 				this.pos.y -= bottom - h;
 			
 			this.sheet.setPosition(this.pos);
@@ -1352,7 +1345,7 @@
 		initialize: function(rect) {
 			this.rect = rect;
 			
-			if ( typeof Raphael != 'undefined' )
+			if (typeof Raphael != 'undefined')
 				this.drawer = new SheetRaphael(rect);
 			else
 				this.drawer = new SheetCanvas(rect);
@@ -1455,7 +1448,7 @@
 		*/
 		
 		drawExplosion: function(particles) {
-			for ( var i = 0, particle; particle = particles[i]; i++ ) {
+			for (var i = 0, particle; particle = particles[i]; i++) {
 				// Set a random particle color
 				this.drawer.setFillColor(['yellow', 'red'][random(0, 1)]);
 				this.drawer.drawLine(particle.pos.x, particle.pos.y, particle.pos.x - particle.dir.x * 10, particle.pos.y - particle.dir.y * 10);
@@ -1495,10 +1488,10 @@
 		// See: <SheetCanvas>
 		tracePoly: function(verts) {
 			// Nothing to draw
-			if ( ! verts[0] ) return;
+			if (!verts[0]) return;
 			
 			this.polyString = 'M' + verts[0][0] + ' ' + verts[0][1];
-			for ( var i = 0; i < verts.length; i++ )
+			for (var i = 0; i < verts.length; i++)
 				this.polyString += 'L' + verts[i][0] + ' ' + verts[i][1];
 		},
 		
@@ -1594,7 +1587,7 @@
 		initialize: function(rect) {
 			this.canvas = document.createElement('canvas');
 			this.canvas.className = 'KICKASSELEMENT';
-			with ( this.canvas.style ) {
+			with (this.canvas.style) {
 				position = 'absolute';
 				zIndex = '1000000';
 			}
@@ -1603,7 +1596,7 @@
 			window.KICKASSGAME.registerElement(this.canvas);
 			// --
 			
-			if ( this.canvas.getContext )
+			if (this.canvas.getContext)
 				this.ctx = this.canvas.getContext('2d');
 			
 			this.rect = rect;
@@ -1622,7 +1615,7 @@
 		
 		tracePoly: function(verts) {
 			// Nothing to draw
-			if ( ! verts[0] ) return;
+			if (!verts[0]) return;
 			
 			// Move to center of canvas and rotate the coordinate system
 			this.ctx.save();
@@ -1632,7 +1625,7 @@
 			// Trace every vertice
 			this.ctx.beginPath();
 			this.ctx.moveTo(verts[0][0], verts[0][1]);
-			for ( var i = 0; i < verts.length; i++ )
+			for (var i = 0; i < verts.length; i++)
 				this.ctx.lineTo(verts[i][0], verts[i][1]);
 			
 			this.ctx.restore();
@@ -1656,9 +1649,9 @@
 		*/
 		
 		updateCanvas: function() {
-			if ( this.canvas.width != this.rect.size.width )
+			if (this.canvas.width != this.rect.size.width)
 				this.canvas.width = this.rect.size.width;
-			if ( this.canvas.height != this.rect.size.height )
+			if (this.canvas.height != this.rect.size.height)
 				this.canvas.height = this.rect.size.height;
 			
 			this.canvas.style.left = window.KICKASSGAME.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
@@ -1784,24 +1777,12 @@
 	
 	var initKickAss = function() {
 		// If an instance of KickAss is already present, we add a player
-		if ( ! window.KICKASSGAME ) {
+		if (!window.KICKASSGAME) {
 			window.KICKASSGAME = new KickAss();
 			window.KICKASSGAME.begin();
 		} else
 			window.KICKASSGAME.addPlayer();
 	};
 	
-	// No canvas support? Try Raphaël
-	if ( ! document.createElement('canvas').getContext ) {
-		var script = document.createElement('script');
-		script.setAttribute('type', 'text/javascript');
-		script.onreadystatechange = function() {
-			if ( script.readyState == 'loaded' || script.readyState == 'complete' )
-				initKickAss();
-		};
-		script.onload = initKickAss;
-		script.src = 'raphael-min.js';
-		document.getElementsByTagName('head')[0].appendChild(script);
-	} else
-		initKickAss();
+	initKickAss();
 })();
