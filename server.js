@@ -52,11 +52,13 @@ io.on('connection', function (client) {
     message.clientId = client.sessionId;
 
     // initial connection, client sent us a guid, we send them back their client id
-    if (message.guid) {
-      message.connected = true;
-
-      // send message back to client
+    if (message.connected === true) {
+      // send message back to client with the clientId
       client.send(message);
+    }
+
+    if (message.position === true) {
+      client.broadcast(message);
     }
   });
 

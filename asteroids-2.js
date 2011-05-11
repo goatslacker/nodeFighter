@@ -21,17 +21,22 @@
 	distribution.
 */
 
-var KickAss = (function(window) {
+var KickAss = (function (window) {
+
+  // socket.io object
+  var socket = null,
+      me = {};
+
 	/*
 		Function:
 			Class
 		
 		Simple function to create MooTools-esque classes
 	*/
-	var Class = function(methods) {
-		var ret = function() {
+	var Class = function (methods) {
+		var ret = function () {
 			if (methods && typeof methods.initialize == 'function')
-				return methods.initialize.apply(this, arguments);
+			  return methods.initialize.apply(this, arguments);
 		};
 		
 		for (var key in methods) if (methods.hasOwnProperty(key))
@@ -42,7 +47,7 @@ var KickAss = (function(window) {
 	
 	if (!Array.prototype.indexOf) {
 		// Found at: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
-		Array.prototype.indexOf = function(searchElement) {
+		Array.prototype.indexOf = function (searchElement) {
 			if (this === void 0 || this === null)
 				throw new TypeError();
 		
@@ -78,7 +83,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var Vector = new Class({
-		initialize: function(x, y) {
+		initialize: function (x, y) {
 			if (typeof x == 'Object') {
 				this.x = x.x;
 				this.y = x.y;
@@ -88,42 +93,42 @@ var KickAss = (function(window) {
 			}
 		},
 
-		cp: function() {
+		cp: function () {
 			return new Vector(this.x, this.y);
 		},
 
-		mul: function(factor) {
+		mul: function (factor) {
 			this.x *= factor;
 			this.y *= factor;
 			return this;
 		},
 
-		mulNew: function(factor) {
+		mulNew: function (factor) {
 			return new Vector(this.x * factor, this.y * factor);
 		},
 
-		add: function(vec) {
+		add: function (vec) {
 			this.x += vec.x;
 			this.y += vec.y;
 			return this;
 		},
 
-		addNew: function(vec) {
+		addNew: function (vec) {
 			return new Vector(this.x + vec.x, this.y + vec.y);
 		},
 
-		sub: function(vec) {
+		sub: function (vec) {
 			this.x -= vec.x;
 			this.y -= vec.y;
 			return this;
 		},
 
-		subNew: function(vec) {
+		subNew: function (vec) {
 			return new Vector(this.x - vec.x, this.y - vec.y);
 		},
 
 		// angle in radians
-		rotate: function(angle) {
+		rotate: function (angle) {
 			var x = this.x, y = this.y;
 			this.x = x * Math.cos(angle) - Math.sin(angle) * y;
 			this.y = x * Math.sin(angle) + Math.cos(angle) * y;
@@ -131,12 +136,12 @@ var KickAss = (function(window) {
 		},
 
 		// angle still in radians
-		rotateNew: function(angle) {
+		rotateNew: function (angle) {
 			return this.cp().rotate(angle);
 		},
 
 		// angle in radians... again
-		setAngle: function(angle) {
+		setAngle: function (angle) {
 			var l = this.len();
 			this.x = Math.cos(angle) * l;
 			this.y = Math.sin(angle) * l;
@@ -144,22 +149,22 @@ var KickAss = (function(window) {
 		},
 
 		// RADIANS
-		setAngleNew: function(angle) {
+		setAngleNew: function (angle) {
 			return this.cp().setAngle(angle);
 		},
 
-		setLength: function(length) {
+		setLength: function (length) {
 			var l = this.len();
 			if (l) this.mul(length / l);
 			else this.x = this.y = length;
 			return this;
 		},
 
-		setLengthNew: function(length) {
+		setLengthNew: function (length) {
 			return this.cp().setLength(length);
 		},
 
-		normalize: function() {
+		normalize: function () {
 			var l = this.len();
 			if (l == 0)
 				return this;
@@ -168,33 +173,33 @@ var KickAss = (function(window) {
 			return this;
 		},
 
-		normalizeNew: function() {
+		normalizeNew: function () {
 			return this.cp().normalize();
 		},
 
-		angle: function() {
+		angle: function () {
 			return Math.atan2(this.y, this.x);
 		},
 
-		collidesWith: function(rect) {
+		collidesWith: function (rect) {
 			return this.x > rect.x && this.y > rect.y && this.x < rect.x + rect.width && this.y < rect.y + rect.height;
 		},
 
-		len: function() {
+		len: function () {
 			var l = Math.sqrt(this.x * this.x + this.y * this.y);
 			if (l < 0.005 && l > -0.005) return 0;
 			return l;
 		},
 
-		is: function(test) {
+		is: function (test) {
 			return typeof test == 'object' && this.x == test.x && this.y == test.y;
 		},
 		
-		dot: function(v2) {
+		dot: function (v2) {
 			return this.x * v2.x + this.y * v2.y;
 		},
 
-		toString: function() {
+		toString: function () {
 			return '[Vector(' + this.x + ', ' + this.y + ') angle: ' + this.angle() + ', length: ' + this.len() + ']';
 		}
 	});
@@ -207,16 +212,16 @@ var KickAss = (function(window) {
 	*/
 	
 	var Rect = new Class({
-		initialize: function(x, y, w, h) {
+		initialize: function (x, y, w, h) {
 			this.pos = new Vector(x, y);
 			this.size = {width: w, height: h};
 		},
 		
-		getRight: function() {
+		getRight: function () {
 			return this.pos.x + this.size.width/2;
 		},
 		
-		getBottom: function() {
+		getBottom: function () {
 			return this.pos.y + this.size.height/2;
 		}
 	});
@@ -244,7 +249,7 @@ var KickAss = (function(window) {
 	*/
 	
 	function bind(bound, func) {
-		return function() {
+		return function () {
 			return func.apply(bound, arguments);
 		}
 	}
@@ -285,7 +290,7 @@ var KickAss = (function(window) {
 			obj.addEventListener(type, fn, false);
 		else if (obj.attachEvent) {
 			obj["e"+type+fn] = fn;
-			obj[type+fn] = function() { obj["e"+type+fn](window.event); }
+			obj[type+fn] = function () { obj["e"+type+fn](window.event); }
 			obj.attachEvent("on"+type, obj[type+fn]);
 		}
 	}
@@ -372,7 +377,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var KickAss = new Class({
-		initialize: function() {
+		initialize: function () {
 			// Holds all the player instances
 			this.players = [];
 			
@@ -414,7 +419,7 @@ var KickAss = (function(window) {
 			this.updateWindowInfo();
 		},
 		
-		begin: function() {
+		begin: function () {
 			// Add first player
 			this.addPlayer();
 			
@@ -422,7 +427,7 @@ var KickAss = (function(window) {
 			this.loopTimer = window.setInterval(bind(this, this.loop), 1000/60);
 		},
 		
-		keydown: function(e) {
+		keydown: function (e) {
 			var c = code(e.keyCode);
 			this.keyMap[c] = true;
 			
@@ -449,7 +454,7 @@ var KickAss = (function(window) {
 			}
 		},
 		
-		keyup: function(e) {
+		keyup: function (e) {
 			var c = code(e.keyCode);
 			this.keyMap[c] = false;
 			
@@ -479,7 +484,7 @@ var KickAss = (function(window) {
 			as it should be.
 		*/
 		
-		loop: function() {
+		loop: function () {
 			var currentTime = now();
 			var tdelta = (currentTime - this.lastUpdate)/1000;
 			
@@ -505,7 +510,7 @@ var KickAss = (function(window) {
 			Adds a player controled by the user. For mega mayhem.
 		*/
 		
-		addPlayer: function() {
+		addPlayer: function () {
 			var player = new Player();
 			player.game = this;
 			
@@ -525,7 +530,7 @@ var KickAss = (function(window) {
 								to avoid confusion
 		*/
 		
-		registerElement: function(el) {
+		registerElement: function (el) {
 			this.elements.push(el);
 		},
 		
@@ -538,7 +543,7 @@ var KickAss = (function(window) {
 			Parameters: See KickAss.registerElement
 		*/
 		
-		unregisterElement: function(el) {
+		unregisterElement: function (el) {
 			this.elements.splice(this.elements.indexOf(el), 1);
 		},
 		
@@ -552,7 +557,7 @@ var KickAss = (function(window) {
 				(element) el - The element to check
 		*/
 		
-		isKickAssElement: function(el) {
+		isKickAssElement: function (el) {
 			for (var i = 0, element; element = this.elements[i]; i++) {
 				if (el === element || elementIsContainedIn(element, el))
 					return true;
@@ -573,7 +578,7 @@ var KickAss = (function(window) {
 				bool - True if it's pressed
 		*/
 		
-		isKeyPressed: function(key) {
+		isKeyPressed: function (key) {
 			return !!this.keyMap[key];
 		},
 		
@@ -584,7 +589,7 @@ var KickAss = (function(window) {
 			Update information regarding the window, scroll position and size.
 		*/
 		
-		updateWindowInfo: function() {
+		updateWindowInfo: function () {
 			this.windowSize = {
 				width: document.documentElement.clientWidth,
 				height: document.documentElement.clientHeight
@@ -602,7 +607,7 @@ var KickAss = (function(window) {
 			classname "KICKASSELEMENT".
 		*/
 		
-		hideAll: function() {
+		hideAll: function () {
 			for (var i = 0, el; el = this.elements[i]; i++)
 				el.style.visibility = 'hidden';
 		},
@@ -614,7 +619,7 @@ var KickAss = (function(window) {
 			This shows everything hidden by hideAll.
 		*/
 		
-		showAll: function() {
+		showAll: function () {
 			for (var i = 0, el; el = this.elements[i]; i++)
 				el.style.visibility = 'visible';
 		},
@@ -626,7 +631,7 @@ var KickAss = (function(window) {
 			Remove every trace of Kick Ass.
 		*/
 		
-		destroy: function() {
+		destroy: function () {
 			// Remove global events
 			removeEvent(document, 'keydown', this.keydownEvent);
 			removeEvent(document, 'keypress', this.keydownEvent);
@@ -653,11 +658,11 @@ var KickAss = (function(window) {
 	*/
 	
 	var MenuManager = new Class({
-		initialize: function() {
+		initialize: function () {
 			this.numPoints = 0;
 		},
 		
-		create: function() {
+		create: function () {
 			// Container 
 			this.container = document.createElement('div');
 			this.container.className = 'KICKASSELEMENT';
@@ -701,12 +706,12 @@ var KickAss = (function(window) {
 				(int) killed - The number of points killed in 
 		*/
 		
-		addPoints: function(killed) {
+		addPoints: function (killed) {
 			this.numPoints += killed*10;
 			this.points.innerHTML = this.numPoints;
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			this.game.unregisterElement(this.container);
 			this.game.unregisterElement(this.escToQuit);
 			this.game.unregisterElement(this.points);
@@ -727,7 +732,7 @@ var KickAss = (function(window) {
 	var PLAYERIDS = 0;
 	
 	var Player = new Class({
-		initialize: function() {
+		initialize: function () {
 			this.id = PLAYERIDS++;
 			
 			// Vertices for the player
@@ -765,7 +770,16 @@ var KickAss = (function(window) {
 		},
 		
     // FIXME -- add the hooks here
-		update: function(tdelta) {
+		update: function (tdelta) {
+      socket.send({
+        guid: me.GUID,
+        x: this.pos.x,
+        y: this.pos.y,
+        // TODO add rotation
+        
+        position: true
+      });
+
 			// Rotation
 			if (this.game.isKeyPressed('left') || this.game.isKeyPressed('right')) {
 				if (this.game.isKeyPressed('left'))
@@ -833,7 +847,7 @@ var KickAss = (function(window) {
 			polygons for red/yellow
 		*/
 		
-		generateFlames: function() {
+		generateFlames: function () {
 			var rWidth = this.size.width,
 				rIncrease = this.size.width * 0.1,
 				yWidth = this.size.width * 0.6,
@@ -868,7 +882,7 @@ var KickAss = (function(window) {
 			Scroll ship if it's out of bounds, or just move it to the other side
 		*/
 		
-		checkBounds: function() {
+		checkBounds: function () {
 			var w = this.game.windowSize.width;
 			var h = this.game.windowSize.height;
 			
@@ -898,28 +912,28 @@ var KickAss = (function(window) {
 		},
 		
 		// Activate and deactivate thrusters, thus accelerating the ship
-		activateThrusters: function() {
+		activateThrusters: function () {
 			this.acc = (new Vector(500, 0)).setAngle(this.dir.angle());
 		},
 		
-		stopThrusters: function() {
+		stopThrusters: function () {
 			this.acc = new Vector(0, 0);
 		},
 		
 		// Rotate left/right/stop rotation methods
-		rotateLeft: function() {
+		rotateLeft: function () {
 			this.currentRotation = -Math.PI*2;
 		},
 		
-		rotateRight: function() {
+		rotateRight: function () {
 			this.currentRotation = Math.PI*2;
 		},
 		
-		stopRotate: function() {
+		stopRotate: function () {
 			this.currentRotation = 0;	
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			this.sheet.destroy();
 		}
 	});
@@ -933,7 +947,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var BulletManager = new Class({
-		initialize: function() {
+		initialize: function () {
 			this.bullets = {};
 			this.lastFired = 0;
 			
@@ -942,7 +956,7 @@ var KickAss = (function(window) {
 			this.enemyIndex = [];
 		},
 		
-		update: function(tdelta) {
+		update: function (tdelta) {
 			// If spacebar is pressed down, and only shoot every 0.1 second
 			if (this.game.isKeyPressed(' ') && now() - this.lastFired > 100) {
 				for (var i = 0, player; player = this.game.players[i]; i++)
@@ -1000,7 +1014,7 @@ var KickAss = (function(window) {
 			Shows a red border around all remaining enemies every 0.25 seconds
 		*/
 		
-		blink: function() {
+		blink: function () {
 			if (now() - this.lastBlink > 250) {
 				for (var i = 0, el; el = this.enemyIndex[i]; i++) {
 					if (!this.blinkActive)
@@ -1024,7 +1038,7 @@ var KickAss = (function(window) {
 			End any blinking action (if there is any)
 		*/
 		
-		endBlink: function() {
+		endBlink: function () {
 			// endBlink is called every run loop if B isn't pressed, so only
 			// reset everything if there is something to reset
 			if (this.enemyIndex.length) {
@@ -1044,7 +1058,7 @@ var KickAss = (function(window) {
 			Update index of destroyable enemies
 		*/
 		
-		updateEnemyIndex: function() {
+		updateEnemyIndex: function () {
 			var all = document.getElementsByTagName('*');
 			this.enemyIndex = [];
 			
@@ -1064,7 +1078,7 @@ var KickAss = (function(window) {
 			Add bullet at the position of a player's cannon
 		*/
 		
-		addBulletFromPlayer: function(player) {
+		addBulletFromPlayer: function (player) {
 			var pid = player.id;
 			
 			// If the player has more than 10 bullets, remove the oldest one
@@ -1098,7 +1112,7 @@ var KickAss = (function(window) {
 			simply destroy the wrapper-div of a page on your first shot, right?
 		*/
 		
-		hasOnlyTextualChildren: function(element) {
+		hasOnlyTextualChildren: function (element) {
 			if (element == document.defaultView || element == document.body)
 				return false;
 			
@@ -1123,7 +1137,7 @@ var KickAss = (function(window) {
 			return true;
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			for (var key in this.bullets) if (this.bullets.hasOwnProperty(key)) 
 				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++)
 					bullet.destroy();
@@ -1144,7 +1158,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var Bullet = new Class({
-		initialize: function() {
+		initialize: function () {
 			this.pos = new Vector(100, 100);
 			this.dir = new Vector(1, 1);
 			this.vel = new Vector(500, 500);
@@ -1155,7 +1169,7 @@ var KickAss = (function(window) {
 			this.sheet.drawBullet();
 		},
 		
-		update: function(tdelta) {
+		update: function (tdelta) {
 			this.pos.add(this.vel.setAngle(this.dir.angle()).mulNew(tdelta));
 			
 			this.checkBounds();
@@ -1172,7 +1186,7 @@ var KickAss = (function(window) {
 				The element that the bullet is on, or false.
 		*/
 		
-		checkCollision: function() {
+		checkCollision: function () {
 			var element = document.elementFromPoint(this.pos.x, this.pos.y);
 			if (element && element.nodeType == 3)
 				element = element.parentNode;
@@ -1180,7 +1194,7 @@ var KickAss = (function(window) {
 		},
 				
 		// See: <Player.checkBounds>
-		checkBounds: function() {
+		checkBounds: function () {
 			var w = this.game.windowSize.width;
 			var h = this.game.windowSize.height;
 			
@@ -1200,7 +1214,7 @@ var KickAss = (function(window) {
 				this.pos.y = h - this.sheet.rect.size.height/2;
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			this.sheet.destroy();
 		}
 	});
@@ -1213,11 +1227,11 @@ var KickAss = (function(window) {
 	*/
 	
 	var ExplosionManager = new Class({
-		initialize: function() {
+		initialize: function () {
 			this.explosions = [];
 		},
 		
-		update: function(tdelta) {
+		update: function (tdelta) {
 			var time = now();
 			
 			for (var i = 0, explosion; explosion = this.explosions[i]; i++) {
@@ -1243,7 +1257,7 @@ var KickAss = (function(window) {
 				(Vector) pos - The position of the explosion
 		*/
 		
-		addExplosion: function(pos) {
+		addExplosion: function (pos) {
 			var explosion = new Explosion(pos);
 			explosion.game = this.game;
 			explosion.checkBounds();
@@ -1251,7 +1265,7 @@ var KickAss = (function(window) {
 			this.explosions.push(explosion);
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			for (var i = 0, explosion; explosion = this.explosions[i]; i++)
 				explosion.destroy();
 			this.explosions = [];
@@ -1266,7 +1280,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var Explosion = new Class({
-		initialize: function(pos) {
+		initialize: function (pos) {
 			this.bornAt = now();
 			this.pos = pos.cp();
 			this.particleVel = new Vector(400, 0);
@@ -1276,7 +1290,7 @@ var KickAss = (function(window) {
 			this.sheet = new Sheet(new Rect(pos.x, pos.y, 250, 250));
 		},
 		
-		update: function(tdelta) {
+		update: function (tdelta) {
 			var vel = this.particleVel.mulNew(tdelta);
 			
 			for (var i = 0, particle; particle = this.particles[i]; i++)
@@ -1293,7 +1307,7 @@ var KickAss = (function(window) {
 			Generate around 30 particles that fly in a random direction
 		*/
 		
-		generateParticles: function() {
+		generateParticles: function () {
 			this.particles = [];
 			
 			// Generate 
@@ -1314,7 +1328,7 @@ var KickAss = (function(window) {
 			if it is, we just adjust it so it doesn't cause any scrollbars.
 		*/
 		
-		checkBounds: function() {
+		checkBounds: function () {
 			// Just do a quick bounds check on the sheet
 			var right = this.sheet.rect.getRight();
 			var bottom = this.sheet.rect.getBottom();
@@ -1330,7 +1344,7 @@ var KickAss = (function(window) {
 			this.sheet.setPosition(this.pos);
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			this.sheet.destroy();
 		}
 	});
@@ -1343,7 +1357,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var Sheet = new Class({
-		initialize: function(rect) {
+		initialize: function (rect) {
 			this.rect = rect;
 			
 			if (typeof Raphael != 'undefined')
@@ -1358,7 +1372,7 @@ var KickAss = (function(window) {
 			Clear the sheet to a initial blank state
 		*/
 		
-		clear: function() {
+		clear: function () {
 			this.drawer.clear();
 		},
 		
@@ -1367,7 +1381,7 @@ var KickAss = (function(window) {
 				setPosition
 		*/
 		
-		setPosition: function(pos) {
+		setPosition: function (pos) {
 			this.rect.pos = pos.cp();
 			this.drawer.rect = this.rect;
 			this.drawer.updateCanvas();
@@ -1380,7 +1394,7 @@ var KickAss = (function(window) {
 			Set the angle used when drawing things
 		*/
 		
-		setAngle: function(angle) {
+		setAngle: function (angle) {
 			this.drawer.setAngle(angle);
 		},
 		
@@ -1392,7 +1406,7 @@ var KickAss = (function(window) {
 			and draws it with a black border around a white body
 		*/
 		
-		drawPlayer: function(verts) {
+		drawPlayer: function (verts) {
 			this.drawer.setFillColor('white');
 			this.drawer.setStrokeColor('black');
 			this.drawer.setLineWidth(1.5);
@@ -1415,7 +1429,7 @@ var KickAss = (function(window) {
 									containing arrays of vertices
 		*/
 		
-		drawFlames: function(flames) {
+		drawFlames: function (flames) {
 			this.drawer.setStrokeColor('red');
 			this.drawer.tracePoly(flames.r);
 			this.drawer.strokePath();
@@ -1432,7 +1446,7 @@ var KickAss = (function(window) {
 			Specialised method for drawing a bullet. It's basically just a circle.
 		*/
 		
-		drawBullet: function() {
+		drawBullet: function () {
 			this.drawer.setFillColor('black');
 			this.drawer.drawCircle(2.5);
 		},
@@ -1448,7 +1462,7 @@ var KickAss = (function(window) {
 										objects with a pos-property (among other things)
 		*/
 		
-		drawExplosion: function(particles) {
+		drawExplosion: function (particles) {
 			for (var i = 0, particle; particle = particles[i]; i++) {
 				// Set a random particle color
 				this.drawer.setFillColor(['yellow', 'red'][random(0, 1)]);
@@ -1456,7 +1470,7 @@ var KickAss = (function(window) {
 			}
 		},
 		
-		destroy: function() {
+		destroy: function () {
 			this.drawer.destroy();
 		}
 	});
@@ -1469,7 +1483,7 @@ var KickAss = (function(window) {
 	*/
 	
 	var SheetRaphael = new Class({
-		initialize: function(rect) {
+		initialize: function (rect) {
 			this.rect = rect;
 			
 			this.fillColor = 'black';
@@ -1487,7 +1501,7 @@ var KickAss = (function(window) {
 		},
 		
 		// See: <SheetCanvas>
-		tracePoly: function(verts) {
+		tracePoly: function (verts) {
 			// Nothing to draw
 			if (!verts[0]) return;
 			
@@ -1497,12 +1511,12 @@ var KickAss = (function(window) {
 		},
 		
 		// See: <SheetCanvas>
-		setAngle: function(angle) {
+		setAngle: function (angle) {
 			this.angle = angle;
 		},
 		
 		// See: <SheetCanvas>
-		updateCanvas: function() {
+		updateCanvas: function () {
 			this.raphael.canvas.width = this.rect.size.width;
 			this.raphael.canvas.height = this.rect.size.height;
 			
@@ -1511,35 +1525,35 @@ var KickAss = (function(window) {
 		},
 		
 		// See: <SheetCanvas>
-		drawLine: function(xFrom, yFrom, xTo, yTo) {
+		drawLine: function (xFrom, yFrom, xTo, yTo) {
 			this.tracePoly([[xFrom, yFrom], [xTo, yTo]]);
 			this.fillPath();
 		},
 		
 		// See: <SheetCanvas>
-		drawCircle: function(radius, pos) {
+		drawCircle: function (radius, pos) {
 			pos = pos || {x: 0, y: 0};
 			this.currentElement = this.raphael.circle(pos.x, pos.y, radius);
 			this.currentElement.attr('fill', this.fillColor);
 		},
 		
 		// See: <SheetCanvas>
-		setFillColor: function(color) {
+		setFillColor: function (color) {
 			this.fillColor = color;
 		},
 		
 		// See: <SheetCanvas>
-		setStrokeColor: function(color) {
+		setStrokeColor: function (color) {
 			this.strokeColor = color;
 		},
 		
 		// See: <SheetCanvas>
-		setLineWidth: function(width) {
+		setLineWidth: function (width) {
 			this.lineWidth = width;
 		},
 		
 		// See: <SheetCanvas>
-		fillPath: function() {
+		fillPath: function () {
 			this.currentElement = this.raphael.path(this.polyString);
 			this.currentElement.translate(this.rect.size.width/2, this.rect.size.height/2);
 			this.currentElement.attr('fill', this.fillColor);
@@ -1548,7 +1562,7 @@ var KickAss = (function(window) {
 		},
 		
 		// See: <SheetCanvas>
-		strokePath: function() {
+		strokePath: function () {
 			this.currentElement = this.raphael.path(this.polyString);
 			this.currentElement.attr('stroke', this.strokeColor);
 			this.currentElement.attr('stroke-width', this.lineWidth);
@@ -1557,11 +1571,11 @@ var KickAss = (function(window) {
 		},
 		
 		// See: <SheetCanvas>
-		clear: function() {
+		clear: function () {
 			this.raphael.clear();
 		},
 		
-		destroy: function()  {
+		destroy: function ()  {
 			// -- Bad style?
 			window.KICKASSGAME.unregisterElement(this.raphael.canvas);
 			// --
@@ -1585,7 +1599,7 @@ var KickAss = (function(window) {
 				(Rect) rect - The size and position of the element. The position is the element's center 
 		*/
 		
-		initialize: function(rect) {
+		initialize: function (rect) {
 			this.canvas = document.createElement('canvas');
 			this.canvas.className = 'KICKASSELEMENT';
 			with (this.canvas.style) {
@@ -1614,7 +1628,7 @@ var KickAss = (function(window) {
 			Add points that will be drawn with <fillPath> or <strokePath>
 		*/
 		
-		tracePoly: function(verts) {
+		tracePoly: function (verts) {
 			// Nothing to draw
 			if (!verts[0]) return;
 			
@@ -1638,7 +1652,7 @@ var KickAss = (function(window) {
 			Set the angle used when drawing things
 		*/
 		
-		setAngle: function(angle) {
+		setAngle: function (angle) {
 			this.angle = angle;
 		},
 		
@@ -1649,7 +1663,7 @@ var KickAss = (function(window) {
 			Update the position and size of the current canvas element
 		*/
 		
-		updateCanvas: function() {
+		updateCanvas: function () {
 			if (this.canvas.width != this.rect.size.width)
 				this.canvas.width = this.rect.size.width;
 			if (this.canvas.height != this.rect.size.height)
@@ -1672,7 +1686,7 @@ var KickAss = (function(window) {
 				(number) yTo - The y end coordinate
 		*/
 		
-		drawLine: function(xFrom, yFrom, xTo, yTo) {
+		drawLine: function (xFrom, yFrom, xTo, yTo) {
 			this.ctx.save();
 			this.ctx.translate(this.rect.size.width/2, this.rect.size.height/2);
 			
@@ -1697,7 +1711,7 @@ var KickAss = (function(window) {
 				(Vector, optional) pos - The position of the circle. Defaults to center
 		*/
 		
-		drawCircle: function(radius, pos) {
+		drawCircle: function (radius, pos) {
 			pos = pos || {x: 0, y: 0};
 			
 			this.ctx.save();
@@ -1713,7 +1727,7 @@ var KickAss = (function(window) {
 			Set the color used when filling with <fillPath>
 		*/
 		
-		setFillColor: function(color) {
+		setFillColor: function (color) {
 			this.ctx.fillStyle = color;
 		},
 		
@@ -1723,7 +1737,7 @@ var KickAss = (function(window) {
 			Set the border color for when using <strokePath>
 		*/
 		
-		setStrokeColor: function(color) {
+		setStrokeColor: function (color) {
 			this.ctx.strokeStyle = color;
 		},
 		
@@ -1733,7 +1747,7 @@ var KickAss = (function(window) {
 			Set the line width of the border when using <strokePath>
 		*/
 		
-		setLineWidth: function(width) {
+		setLineWidth: function (width) {
 			this.ctx.lineWidth = width;
 		},
 		
@@ -1743,7 +1757,7 @@ var KickAss = (function(window) {
 			Fill the current path
 		*/
 		
-		fillPath: function() {
+		fillPath: function () {
 			this.ctx.fill();
 		},
 		
@@ -1753,7 +1767,7 @@ var KickAss = (function(window) {
 			Add a border around the current path
 		*/
 		
-		strokePath: function() {
+		strokePath: function () {
 			this.ctx.stroke();
 		},
 		
@@ -1763,11 +1777,11 @@ var KickAss = (function(window) {
 			Clear the sheet (canvas) to it's initial blank state
 		*/
 		
-		clear: function() {
+		clear: function () {
 			this.ctx.clearRect(0, 0, this.rect.size.width, this.rect.size.height);
 		},
 		
-		destroy: function()  {
+		destroy: function ()  {
 			// -- Bad style?
 			window.KICKASSGAME.unregisterElement(this.canvas);
 			// --
@@ -1776,22 +1790,11 @@ var KickAss = (function(window) {
 		}
 	});
 	
-	KickAss.newGame = function() {
-    // connect to socket
-    KickAss.socket.connect();
 
-    // if some time has passed and we're still not connected, offer a message
-    setTimeout(function () {
-      if (typeof(KickAss.GUID) === "undefined") {
-        alert("We seem to have issues connecting to the server, try again later?");
-      }
-    }, 20000);
-	};
-
-  KickAss.socket = new io.Socket("127.0.0.1", { port: 808, rememberTransport: false });
-  KickAss.socket.on('connect', function () {
+  socket = new io.Socket("127.0.0.1", { port: 808, rememberTransport: false });
+  socket.on('connect', function () {
     // generate UID
-    KickAss.GUID = (function () {
+    me.GUID = (function () {
       var id = "",
           i = 0;
       for (i; i < 4; i = i + 1) {
@@ -1801,10 +1804,10 @@ var KickAss = (function(window) {
     }());
 
     // tell the server our ID
-    KickAss.socket.send({ guid: KickAss.GUID });
+    socket.send({ connected: true, guid: me.GUID });
   });
 
-  KickAss.socket.on('message', function (obj) {
+  socket.on('message', function (obj) {
     // initial connection logic
     if (obj.connected === true) {
       if ("clients" in obj) {
@@ -1812,8 +1815,8 @@ var KickAss = (function(window) {
       }
 
       // set the proper ID for the client
-      if (obj.guid === KickAss.GUID) {
-        KickAss.GUID = obj.clientId;
+      if (obj.guid === me.GUID) {
+        me.GUID = obj.clientId;
 
         // start game
         if (!window.KICKASSGAME) {
@@ -1827,9 +1830,28 @@ var KickAss = (function(window) {
     if (obj.newPlayer === true) {
       console.log('new player');
     }
+
+    // update position of player
+    if (obj.position === true) {
+      // if it's not you...
+      if (obj.clientId !== me.GUID) {
+        // TODO
+      }
+    }
     
   });
 
-  return KickAss;
+  /** return a constructor to call to start a new game */
+	return function () {
+    // connect to socket
+    socket.connect();
+
+    // if some time has passed and we're still not connected, offer a message
+    setTimeout(function () {
+      if (typeof(me.GUID) === "undefined") {
+        alert("We seem to have issues connecting to the server, try again later?");
+      }
+    }, 20000);
+  }
 
 })(this);
