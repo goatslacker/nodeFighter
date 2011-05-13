@@ -44,7 +44,7 @@ var KickAss = (function (window) {
 		
 		return ret;
 	};
-	
+
 	if (!Array.prototype.indexOf) {
 		// Found at: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
 		Array.prototype.indexOf = function (searchElement) {
@@ -379,7 +379,8 @@ var KickAss = (function (window) {
 	var KickAss = new Class({
 		initialize: function () {
 			// Holds all the player instances
-			this.players = [];
+      this.player = null;
+			this.enemies = {};
 			
 			// Holds an array of elements related to this game
 			// this should maybe be replaced with something wiser
@@ -485,14 +486,19 @@ var KickAss = (function (window) {
 		*/
 		
 		loop: function () {
+      var self = this;
 			var currentTime = now();
 			var tdelta = (currentTime - this.lastUpdate)/1000;
 			
 			this.updateWindowInfo();
 			
+      // TODO - update just your player! everyone else gets their coordinates elsewhere...
 			// Update every player
-			for (var i = 0, player; player = this.players[i]; i++)
-				player.update(tdelta);
+      this.player.update(tdelta);
+
+      Object.keys(this.enemies).forEach(function (enemy) {
+        self.enemies[enemy].update(tdelta);
+      });
 			
 			// Update bullets
 			this.bulletManager.update(tdelta);
@@ -514,10 +520,19 @@ var KickAss = (function (window) {
 			var player = new Player();
 			player.game = this;
 			
-			this.players.push(player);
+			this.player = player;
 			
 			this.explosionManager.addExplosion(player.pos);
 		},
+
+    addEnemy: function (id) {
+			var enemy = new Enemy(id);
+			enemy.game = this;
+			
+      this.enemies[id] = enemy;
+
+			this.explosionManager.addExplosion(enemy.pos);
+    },
 		
 		/*
 			Method:
@@ -637,9 +652,12 @@ var KickAss = (function (window) {
 			removeEvent(document, 'keypress', this.keydownEvent);
 			removeEvent(document, 'keyup', this.keyupEvent);
 			
+      this.player.destroy();
+
 			// Destroy everything
-			for (var i = 0, player; player = this.players[i]; i++)
-				player.destroy();
+      Object.keys(this.enemies).forEach(function (enemy) {
+        this.enemies[enemy].destroy();
+      });
 			
 			this.bulletManager.destroy();
 			this.explosionManager.destroy();
@@ -731,50 +749,57 @@ var KickAss = (function (window) {
 	
 	var PLAYERIDS = 0;
 	
-	var Player = new Class({
-		initialize: function () {
-			this.id = PLAYERIDS++;
-			
-			// Vertices for the player
-			// Remember that the ship should be pointing to the left
-			this.verts = [
-				[-10, 10],
-				[15, 0],
-				[-10, -10],
-				[-10, 10]
-			];
-			
-			this.size = {width: 20, height: 30};
-			
-			// Flame vertices
-			this.flames = {r: [], y: []};
-			
-			// The canvas for the ship, leave some room for the flames 
-			this.sheet = new Sheet(new Rect(100, 100, 50, 50));
-			
-			// Physics
-			this.pos = new Vector(100, 100);
-			this.vel = new Vector(0, 0);
-			this.acc = new Vector(0, 0);
-			this.dir = new Vector(1, 0);
-			this.currentRotation = 0;
-			
-			// Physics-related constants
-			this.friction = 0.8;
-			this.terminalVelocity = 2000;
-			
-			this.lastPos = new Vector(0, 0);
-			this.lastFrameUpdate = 0;
-			
-			this.generateFlames();
-		},
-		
+  // switching Player to prototypical inheritance
+	var Player = function () {
+    this.initialize();
+  };
+
+  Player.prototype = {
+    initialize: function () {
+      this.id = PLAYERIDS++;
+      
+      // Vertices for the player
+      // Remember that the ship should be pointing to the left
+      this.verts = [
+        [-10, 10],
+        [15, 0],
+        [-10, -10],
+        [-10, 10]
+      ];
+      
+      this.size = {width: 20, height: 30};
+      
+      // Flame vertices
+      this.flames = {r: [], y: []};
+      
+      // The canvas for the ship, leave some room for the flames 
+      this.sheet = new Sheet(new Rect(100, 100, 50, 50));
+      
+      // Physics
+      this.pos = new Vector(100, 100);
+      this.vel = new Vector(0, 0);
+      this.acc = new Vector(0, 0);
+      this.dir = new Vector(1, 0);
+      this.currentRotation = 0;
+      
+      // Physics-related constants
+      this.friction = 0.8;
+      this.terminalVelocity = 2000;
+      
+      this.lastPos = new Vector(0, 0);
+      this.lastFrameUpdate = 0;
+      
+      this.generateFlames();
+    },		
+
     // FIXME -- add the hooks here
 		update: function (tdelta) {
       socket.send({
         guid: me.GUID,
-        x: this.pos.x,
-        y: this.pos.y,
+        pos: {
+          x: this.pos.x,
+          y: this.pos.y
+        },
         // TODO add rotation
         
         position: true
@@ -936,8 +961,44 @@ var KickAss = (function (window) {
 		destroy: function () {
 			this.sheet.destroy();
 		}
-	});
+	};
 	
+  var Enemy = function (id) {
+    this.initialize();
+    this.id = id;
+  };
+
+  Enemy.prototype = Object.create(Player.prototype);
+  Enemy.prototype.update = function (tdelta) {
+  
+    // Add velocity to position
+    this.pos.add(this.vel.mulNew(tdelta));
+    
+    // Update flames?
+    if (now() - this.lastFrameUpdate > 1000/15)
+      this.generateFlames();
+    
+    // Check bounds and update accordingly
+    this.checkBounds();
+    
+    // Only update canvas if any changes have occured
+    if (!this.lastPos.is(this.pos) || this.currentRotation) {
+      // Draw changes onto canvas
+      this.sheet.clear();
+      this.sheet.setAngle(this.dir.angle());
+      this.sheet.setPosition(this.pos);
+      
+      // Draw flames if thrusters are activated
+      if (!this.acc.is({x: 0, y: 0})) {
+        this.sheet.drawFlames(this.flames);
+      }
+      
+      this.sheet.drawPlayer(this.verts);
+      
+      this.lastPos = this.pos.cp();
+		}
+  };
+
 	/*
 		Class:
 			BulletManager
@@ -959,8 +1020,12 @@ var KickAss = (function (window) {
 		update: function (tdelta) {
 			// If spacebar is pressed down, and only shoot every 0.1 second
 			if (this.game.isKeyPressed(' ') && now() - this.lastFired > 100) {
-				for (var i = 0, player; player = this.game.players[i]; i++)
-					this.addBulletFromPlayer(player);
+        this.addBulletFromPlayer(this.game.player);
+
+// FIXME - enemies?
+//				for (var i = 0, player; player = this.game.players[i]; i++)
+//					this.addBulletFromPlayer(player);
+
 				this.lastFired = now();
 			}
 			
@@ -1496,7 +1561,7 @@ var KickAss = (function (window) {
 			this.raphael.canvas.className = 'KICKASSELEMENT';
 			
 			// -- bad style?
-			window.KICKASSGAME.registerElement(this.raphael.canvas);
+			me.KickAss.registerElement(this.raphael.canvas);
 			// --
 		},
 		
@@ -1520,8 +1585,8 @@ var KickAss = (function (window) {
 			this.raphael.canvas.width = this.rect.size.width;
 			this.raphael.canvas.height = this.rect.size.height;
 			
-			this.raphael.canvas.style.left = window.KICKASSGAME.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
-			this.raphael.canvas.style.top = window.KICKASSGAME.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
+			this.raphael.canvas.style.left = me.KickAss.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
+			this.raphael.canvas.style.top = me.KickAss.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
 		},
 		
 		// See: <SheetCanvas>
@@ -1577,7 +1642,7 @@ var KickAss = (function (window) {
 		
 		destroy: function ()  {
 			// -- Bad style?
-			window.KICKASSGAME.unregisterElement(this.raphael.canvas);
+			me.KickAss.unregisterElement(this.raphael.canvas);
 			// --
 			
 			this.raphael.remove();
@@ -1608,7 +1673,7 @@ var KickAss = (function (window) {
 			}
 			
 			// -- Bad style?
-			window.KICKASSGAME.registerElement(this.canvas);
+			me.KickAss.registerElement(this.canvas);
 			// --
 			
 			if (this.canvas.getContext)
@@ -1669,8 +1734,8 @@ var KickAss = (function (window) {
 			if (this.canvas.height != this.rect.size.height)
 				this.canvas.height = this.rect.size.height;
 			
-			this.canvas.style.left = window.KICKASSGAME.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
-			this.canvas.style.top = window.KICKASSGAME.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
+			this.canvas.style.left = me.KickAss.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
+			this.canvas.style.top = me.KickAss.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
 		},
 		
 		/*
@@ -1783,7 +1848,7 @@ var KickAss = (function (window) {
 		
 		destroy: function ()  {
 			// -- Bad style?
-			window.KICKASSGAME.unregisterElement(this.canvas);
+			me.KickAss.unregisterElement(this.canvas);
 			// --
 			
 			this.canvas.parentNode.removeChild(this.canvas);
@@ -1808,34 +1873,50 @@ var KickAss = (function (window) {
   });
 
   socket.on('message', function (obj) {
+    var player = null;
+
     // initial connection logic
     if (obj.connected === true) {
-      if ("clients" in obj) {
-        // TODO loop through and add all these players
-      }
-
       // set the proper ID for the client
       if (obj.guid === me.GUID) {
         me.GUID = obj.clientId;
 
         // start game
-        if (!window.KICKASSGAME) {
-          window.KICKASSGAME = new KickAss();
-          window.KICKASSGAME.begin();
+        if (!me.KickAss) {
+          me.KickAss = new KickAss();
+          me.KickAss.begin();
+
+          if (me.hasOwnProperty("clients")) {
+            for (player in me.clients) {
+              if (me.clients.hasOwnProperty(player)) {
+                me.KickAss.addEnemy(player);
+              }
+            }
+
+            delete me.clients;
+          }
         }
+      }
+
+      if (obj.hasOwnProperty("clients")) {
+        me.clients = obj.clients;
       }
     }
 
     // new player :D
     if (obj.newPlayer === true) {
-      console.log('new player');
+      me.KickAss.addEnemy(obj.clientId);
     }
 
     // update position of player
     if (obj.position === true) {
       // if it's not you...
       if (obj.clientId !== me.GUID) {
-        // TODO
+        if (me.KickAss.enemies.hasOwnProperty(obj.clientId)) {
+          var player = me.KickAss.enemies[obj.clientId];
+          player.pos.x = obj.pos.x;
+          player.pos.y = obj.pos.y;
+        }
       }
     }
     

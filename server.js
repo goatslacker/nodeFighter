@@ -46,7 +46,7 @@ io.on('connection', function (client) {
   clients[client.sessionId] = true;
 
   // let everyone know there's a new player in town
-  client.broadcast({ newPlayer: true, client: client.sessionId });
+  client.broadcast({ newPlayer: true, clientId: client.sessionId });
 
   client.on('message', function (message) {
     message.clientId = client.sessionId;
@@ -66,7 +66,7 @@ io.on('connection', function (client) {
     delete clients[client.sessionId];
 
     // player disconnected D:
-    client.broadcast({ delPlayer: true, client: client.sessionId });
+    client.broadcast({ delPlayer: true, clientId: client.sessionId });
   });
 });
 
