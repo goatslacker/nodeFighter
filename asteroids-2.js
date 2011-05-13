@@ -35,12 +35,16 @@ var KickAss = (function (window) {
 	*/
 	var Class = function (methods) {
 		var ret = function () {
-			if (methods && typeof methods.initialize == 'function')
+			if (methods && typeof methods.initialize == 'function') {
 			  return methods.initialize.apply(this, arguments);
+      }
 		};
 		
-		for (var key in methods) if (methods.hasOwnProperty(key))
-			ret.prototype[key] = methods[key];
+		for (var key in methods) {
+      if (methods.hasOwnProperty(key)) {
+        ret.prototype[key] = methods[key];
+      }
+    }
 		
 		return ret;
 	};
@@ -794,25 +798,26 @@ var KickAss = (function (window) {
 
 		update: function (tdelta) {
 			// Rotation
-			if (this.game.isKeyPressed('left') || this.game.isKeyPressed('right')) {
-				if (this.game.isKeyPressed('left'))
-					this.rotateLeft();
-				if (this.game.isKeyPressed('right'))
-					this.rotateRight();
+			if (this.game.isKeyPressed('left')) {
+				this.rotateLeft();
+			} else if (this.game.isKeyPressed('right')) {
+				this.rotateRight();
 			} else {
 				this.stopRotate();
 			}
 			
 			// Activate thrusters!
-			if (this.game.isKeyPressed('up'))
+			if (this.game.isKeyPressed('up')) {
 				this.activateThrusters();
-			else
+			} else {
 				this.stopThrusters();
-			
+			}
+
 			// Add rotation
-			if (this.currentRotation)
+			if (this.currentRotation) {
 				this.dir.setAngle(this.dir.angle() + this.currentRotation*tdelta);
-			
+      }			
+
 			// Add acceleration to velocity
 			// The equation for the friction is:
 			//      velocity += acceleration - friction*velocity
@@ -859,6 +864,7 @@ var KickAss = (function (window) {
           y: this.pos.y
         },
         currentRotation: this.currentRotation,
+			  thrustersActive: this.game.isKeyPressed('up'),
         position: true
       });
 
@@ -971,10 +977,18 @@ var KickAss = (function (window) {
   Enemy.prototype = Object.create(Player.prototype);
   Enemy.prototype.update = function (tdelta) {
   
+    // Activate thrusters!
+    if (this.thrustersActive) {
+      this.activateThrusters();
+    } else {
+      this.stopThrusters();
+    }
+
     // Add rotation
-    if (this.currentRotation)
+    if (this.currentRotation) {
       this.dir.setAngle(this.dir.angle() + this.currentRotation*tdelta);
-    
+    }    
+
     // Add acceleration to velocity
     // The equation for the friction is:
     //      velocity += acceleration - friction*velocity
@@ -1061,17 +1075,22 @@ var KickAss = (function (window) {
 		},
 		
 		update: function (tdelta) {
+      var self = this;
+
 			// If spacebar is pressed down, and only shoot every 0.1 second
 			if (this.game.isKeyPressed(' ') && now() - this.lastFired > 100) {
         this.addBulletFromPlayer(this.game.player);
 
-// FIXME - enemies?
-//				for (var i = 0, player; player = this.game.players[i]; i++)
-//					this.addBulletFromPlayer(player);
-
 				this.lastFired = now();
 			}
 			
+      // if there are any bullets... ??? not sure how im going to pass this one...
+/*
+      Object.keys(this.enemies).forEach(function (enemy) {
+        self.addBulletFromPlayer(self.enemies[enemy]);
+      });
+*/
+
 			// If B is pressed, show remaining enemies
 			if (this.game.isKeyPressed('B')) {
 				this.blink();
@@ -1957,9 +1976,12 @@ var KickAss = (function (window) {
       if (obj.clientId !== me.GUID) {
         if (me.KickAss.enemies.hasOwnProperty(obj.clientId)) {
           var player = me.KickAss.enemies[obj.clientId];
+
+          // TODO need to put this in a nice easy to read obj...
           player.pos.x = obj.pos.x;
           player.pos.y = obj.pos.y;
           player.currentRotation = obj.currentRotation;
+          player.thrustersActive = obj.thrustersActive;
         }
       }
     }
