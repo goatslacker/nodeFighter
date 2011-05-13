@@ -792,19 +792,7 @@ var KickAss = (function (window) {
       this.generateFlames();
     },		
 
-    // FIXME -- add the hooks here
 		update: function (tdelta) {
-      socket.send({
-        guid: me.GUID,
-        pos: {
-          x: this.pos.x,
-          y: this.pos.y
-        },
-        // TODO add rotation
-        
-        position: true
-      });
-
 			// Rotation
 			if (this.game.isKeyPressed('left') || this.game.isKeyPressed('right')) {
 				if (this.game.isKeyPressed('left'))
@@ -862,6 +850,18 @@ var KickAss = (function (window) {
 				
 				this.lastPos = this.pos.cp();
 			}
+
+      // send to socket
+      socket.send({
+        guid: me.GUID,
+        pos: {
+          x: this.pos.x,
+          y: this.pos.y
+        },
+        currentRotation: this.currentRotation,
+        position: true
+      });
+
 		},
 		
 		/*
@@ -971,6 +971,21 @@ var KickAss = (function (window) {
   Enemy.prototype = Object.create(Player.prototype);
   Enemy.prototype.update = function (tdelta) {
   
+    // Add rotation
+    if (this.currentRotation)
+      this.dir.setAngle(this.dir.angle() + this.currentRotation*tdelta);
+    
+    // Add acceleration to velocity
+    // The equation for the friction is:
+    //      velocity += acceleration - friction*velocity
+    // Found at: http://stackoverflow.com/questions/667034/simple-physics-based-movement
+    var frictionedAcc = this.acc.mulNew(tdelta).sub(this.vel.mulNew(tdelta*this.friction))
+    this.vel.add(frictionedAcc);
+    
+    // Cap velocity
+    if (this.vel.len() > this.terminalVelocity)
+      this.vel.setLength(this.terminalVelocity);
+    
     // Add velocity to position
     this.pos.add(this.vel.mulNew(tdelta));
     
@@ -997,6 +1012,34 @@ var KickAss = (function (window) {
       
       this.lastPos = this.pos.cp();
 		}
+/*
+    // Add velocity to position
+    this.pos.add(this.vel.mulNew(tdelta));
+    
+    // Update flames?
+    if (now() - this.lastFrameUpdate > 1000/15)
+      this.generateFlames();
+    
+    // Check bounds and update accordingly
+    this.checkBounds();
+    
+    // Only update canvas if any changes have occured
+    if (!this.lastPos.is(this.pos) || this.currentRotation) {
+      // Draw changes onto canvas
+      this.sheet.clear();
+      this.sheet.setAngle(this.dir.angle());
+      this.sheet.setPosition(this.pos);
+      
+      // Draw flames if thrusters are activated
+      if (!this.acc.is({x: 0, y: 0})) {
+        this.sheet.drawFlames(this.flames);
+      }
+      
+      this.sheet.drawPlayer(this.verts);
+      
+      this.lastPos = this.pos.cp();
+		}
+*/
   };
 
 	/*
@@ -1916,6 +1959,7 @@ var KickAss = (function (window) {
           var player = me.KickAss.enemies[obj.clientId];
           player.pos.x = obj.pos.x;
           player.pos.y = obj.pos.y;
+          player.currentRotation = obj.currentRotation;
         }
       }
     }
