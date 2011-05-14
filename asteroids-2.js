@@ -797,6 +797,9 @@ var KickAss = (function (window) {
     },		
 
 		update: function (tdelta) {
+      // shooting
+      this.fire = (this.game.isKeyPressed(' ') && now() - this.game.bulletManager.lastFired > 250);
+
 			// Rotation
 			if (this.game.isKeyPressed('left')) {
 				this.rotateLeft();
@@ -806,8 +809,10 @@ var KickAss = (function (window) {
 				this.stopRotate();
 			}
 			
+			this.thrustersActive = this.game.isKeyPressed('up');
+
 			// Activate thrusters!
-			if (this.game.isKeyPressed('up')) {
+			if (this.thrustersActive) {
 				this.activateThrusters();
 			} else {
 				this.stopThrusters();
@@ -864,7 +869,8 @@ var KickAss = (function (window) {
           y: this.pos.y
         },
         currentRotation: this.currentRotation,
-			  thrustersActive: this.game.isKeyPressed('up'),
+			  thrustersActive: this.thrustersActive,
+        fire: this.fire,
         position: true
       });
 
@@ -1075,29 +1081,32 @@ var KickAss = (function (window) {
 		},
 		
 		update: function (tdelta) {
-      var self = this;
+      var self = this.game,
+          that = this;
 
 			// If spacebar is pressed down, and only shoot every 0.1 second
-			if (this.game.isKeyPressed(' ') && now() - this.lastFired > 100) {
+			if (this.game.player.fire) {
         this.addBulletFromPlayer(this.game.player);
 
 				this.lastFired = now();
 			}
 			
-      // if there are any bullets... ??? not sure how im going to pass this one...
-/*
-      Object.keys(this.enemies).forEach(function (enemy) {
-        self.addBulletFromPlayer(self.enemies[enemy]);
+      // enemy fire!
+      Object.keys(self.enemies).forEach(function (enemy) {
+        if (self.enemies[enemy].fire === true) {
+          that.addBulletFromPlayer(self.enemies[enemy]);
+        }
       });
-*/
 
 			// If B is pressed, show remaining enemies
+/*
 			if (this.game.isKeyPressed('B')) {
 				this.blink();
 			} else {
 				this.endBlink();
 			}
-			
+*/	
+		
 			for (var key in this.bullets) if (this.bullets.hasOwnProperty(key)) {
 				var time = now(); // the time... is now
 				
@@ -1137,6 +1146,7 @@ var KickAss = (function (window) {
 		/*
 			Method:
 				blink
+        TODO - check this out
 			
 			Shows a red border around all remaining enemies every 0.25 seconds
 		*/
@@ -1161,6 +1171,7 @@ var KickAss = (function (window) {
 		/*
 			Method:
 				endBlink
+        TODO - check this out
 			
 			End any blinking action (if there is any)
 		*/
@@ -1181,7 +1192,7 @@ var KickAss = (function (window) {
 		/*
 			Method:
 				updateEnemyIndex
-			
+			  TODO
 			Update index of destroyable enemies
 		*/
 		
@@ -1967,6 +1978,7 @@ var KickAss = (function (window) {
 
     // new player :D
     if (obj.newPlayer === true) {
+      // TODO need to work on initial rotation
       me.KickAss.addEnemy(obj.clientId);
     }
 
@@ -1982,6 +1994,7 @@ var KickAss = (function (window) {
           player.pos.y = obj.pos.y;
           player.currentRotation = obj.currentRotation;
           player.thrustersActive = obj.thrustersActive;
+          player.fire = obj.fire;
         }
       }
     }
