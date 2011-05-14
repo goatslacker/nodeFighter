@@ -2033,13 +2033,13 @@ var KickAss = (function (window) {
     // FIXME should be a switch statement!
     // someone died!
     if (obj.kill === true) {
+    // TODO - fix security issues
 
       // oh noes I died :(
       if (obj.guid === me.GUID) {
         var player = me.KickAss.player;
         if (player) {
           me.KickAss.explosionManager.addExplosion(player.pos);
-          // TODO set a timeout for when you can come back to respawn
           player.destroy();
           delete me.KickAss.player;
 
@@ -2105,6 +2105,14 @@ var KickAss = (function (window) {
 
   /** return a constructor to call to start a new game */
 	return function () {
+    // TODO verify game configs with the server
+    /**
+      - bullet time between fire
+      - max velocity of players
+      - velocity of bullets
+      - colors
+      */
+
     // connect to socket
     socket.connect();
 
