@@ -751,8 +751,6 @@ var KickAss = (function (window) {
 		Each player is assigned it's own canvas that it's drawn on.
 	*/
 	
-	var PLAYERIDS = 0;
-	
   // switching Player to prototypical inheritance
 	var Player = function () {
     this.initialize();
@@ -760,7 +758,7 @@ var KickAss = (function (window) {
 
   Player.prototype = {
     initialize: function () {
-      this.id = PLAYERIDS++;
+      this.id = me.GUID;
       
       // Vertices for the player
       // Remember that the ship should be pointing to the left
@@ -1124,19 +1122,24 @@ var KickAss = (function (window) {
 					// Hide everything related to this game so it can't be hit
 					this.game.hideAll();
 					
-					var hit = bullet.checkCollision();
-					
-					// If we hit something remove the element, add an explosion and remove the bullet
-					if (hit) {
-						this.game.explosionManager.addExplosion(bullet.pos);
-						this.game.menuManager.addPoints(hit.getElementsByTagName('*').length + 1);
-						
-						hit.parentNode.removeChild(hit);
-						
-						bullet.destroy();
-						this.bullets[key].splice(i, 1);
-					}
-					
+          // if it's your bullet, we check for collision
+          if (key === me.GUID) {
+					  var hit = bullet.checkCollision();
+            // If we hit something remove the element, add an explosion and remove the bullet
+            if (hit) {
+              this.game.explosionManager.addExplosion(bullet.pos);
+
+              // FIXME - right now the kill is one way, make it two way, one sends the kill the other acknowledges it's been killed
+              socket.send({
+                kill: true,
+                guid: hit
+              });
+              
+              bullet.destroy();
+              this.bullets[key].splice(i, 1);
+            }
+          }
+ 
 					// Show it again
 					this.game.showAll();
 				}
@@ -1325,10 +1328,23 @@ var KickAss = (function (window) {
 		*/
 		
 		checkCollision: function () {
-			var element = document.elementFromPoint(this.pos.x, this.pos.y);
-			if (element && element.nodeType == 3)
-				element = element.parentNode;
-			return element && element != document.documentElement && this.manager.hasOnlyTextualChildren(element) ? element : false;
+      var self = this,
+          hit = false;
+
+      Object.keys(this.game.enemies).forEach(function (enemy) {
+        var ship = self.game.enemies[enemy];
+
+        if (
+          self.pos.x >= ship.pos.x && self.pos.x <= ship.pos.x + ship.size.width
+          &&
+          self.pos.y >= ship.pos.y && self.pos.y <= ship.pos.y + ship.size.height
+        ) {
+          hit = enemy;
+          return hit;
+        }
+      });
+
+      return hit;
 		},
 				
 		// See: <Player.checkBounds>
@@ -1997,6 +2013,21 @@ var KickAss = (function (window) {
           player.fire = obj.fire;
         }
       }
+    }
+
+    // FIXME should be a switch statement!
+    // someone died!
+    if (obj.kill === true) {
+
+      // oh noes I died :(
+      if (obj.guid === me.GUID) {
+        var player = me.KickAss.player;
+        me.KickAss.explosionManager.addExplosion(player.pos);
+        // TODO set a timeout for when you can come back to respawn
+      } else {
+        // TODO remove them from the board temporarily...
+      }
+
     }
     
   });

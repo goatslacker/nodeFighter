@@ -57,7 +57,7 @@ io.on('connection', function (client) {
       client.send(message);
     }
 
-    if (message.position === true) {
+    if (message.position === true || message.kill === true) {
       client.broadcast(message);
     }
   });
