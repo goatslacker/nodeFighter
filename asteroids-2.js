@@ -496,9 +496,9 @@ var KickAss = (function (window) {
 			
 			this.updateWindowInfo();
 			
-      // TODO - update just your player! everyone else gets their coordinates elsewhere...
-			// Update every player
-      this.player.update(tdelta);
+      if (this.player) {
+        this.player.update(tdelta);
+      }
 
       Object.keys(this.enemies).forEach(function (enemy) {
         self.enemies[enemy].update(tdelta);
@@ -1083,7 +1083,7 @@ var KickAss = (function (window) {
           that = this;
 
 			// If spacebar is pressed down, and only shoot every 0.1 second
-			if (this.game.player.fire) {
+			if (this.game.player && this.game.player.fire) {
         this.addBulletFromPlayer(this.game.player);
 
 				this.lastFired = now();
@@ -1134,7 +1134,15 @@ var KickAss = (function (window) {
                 kill: true,
                 guid: hit
               });
-              
+
+              // delete enemy
+              // TODO should wait for confirmation before deleting
+              this.game.enemies[hit].destroy();
+              delete this.game.enemies[hit];
+
+              // add points
+              this.game.menuManager.addPoints(10);
+
               bullet.destroy();
               this.bullets[key].splice(i, 1);
             }
@@ -2022,12 +2030,35 @@ var KickAss = (function (window) {
       // oh noes I died :(
       if (obj.guid === me.GUID) {
         var player = me.KickAss.player;
-        me.KickAss.explosionManager.addExplosion(player.pos);
-        // TODO set a timeout for when you can come back to respawn
+        if (player) {
+          me.KickAss.explosionManager.addExplosion(player.pos);
+          // TODO set a timeout for when you can come back to respawn
+          player.destroy();
+          delete me.KickAss.player;
+
+          // TODO - make interval instead, and display countdown in main window...
+          window.setTimeout(function () {
+            me.KickAss.addPlayer();
+
+            socket.send({
+              guid: me.GUID,
+              respawn: true
+            });
+          }, 5000);
+        }
       } else {
-        // TODO remove them from the board temporarily...
+        if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
+          me.KickAss.enemies[obj.guid].destroy();
+          delete me.KickAss.enemies[obj.guid];
+        }
       }
 
+    }
+
+    if (obj.respawn === true) {
+      if (obj.guid !== me.GUID) {
+        me.KickAss.addEnemy(obj.guid);
+      }
     }
     
   });
