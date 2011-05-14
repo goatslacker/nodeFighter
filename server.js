@@ -57,8 +57,12 @@ io.on('connection', function (client) {
       client.send(message);
     }
 
-    if (message.position === true || message.kill === true || message.respawn === true) {
+    if (message.position === true || message.kill === true || message.respawn === true || message.quit === true) {
       client.broadcast(message);
+
+      if (message.quit === true) {
+        delete clients[message.guid];
+      }
     }
   });
 

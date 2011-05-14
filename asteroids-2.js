@@ -651,6 +651,8 @@ var KickAss = (function (window) {
 		*/
 		
 		destroy: function () {
+      var that = this;
+
 			// Remove global events
 			removeEvent(document, 'keydown', this.keydownEvent);
 			removeEvent(document, 'keypress', this.keydownEvent);
@@ -660,7 +662,7 @@ var KickAss = (function (window) {
 
 			// Destroy everything
       Object.keys(this.enemies).forEach(function (enemy) {
-        this.enemies[enemy].destroy();
+        that.enemies[enemy].destroy();
       });
 			
 			this.bulletManager.destroy();
@@ -669,6 +671,11 @@ var KickAss = (function (window) {
 			
 			// Stop game timer
 			clearInterval(this.loopTimer);
+
+      socket.send({
+        quit: true,
+        guid: me.GUID
+      });
 		}
 	});
 	
@@ -778,7 +785,7 @@ var KickAss = (function (window) {
       this.sheet = new Sheet(new Rect(100, 100, 50, 50));
       
       // Physics
-      this.pos = new Vector(100, 100);
+      this.pos = new Vector(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
       this.vel = new Vector(0, 0);
       this.acc = new Vector(0, 0);
       this.dir = new Vector(1, 0);
@@ -980,7 +987,7 @@ var KickAss = (function (window) {
 
   Enemy.prototype = Object.create(Player.prototype);
   Enemy.prototype.update = function (tdelta) {
-  
+
     // Activate thrusters!
     if (this.thrustersActive) {
       this.activateThrusters();
@@ -2036,15 +2043,41 @@ var KickAss = (function (window) {
           player.destroy();
           delete me.KickAss.player;
 
-          // TODO - make interval instead, and display countdown in main window...
-          window.setTimeout(function () {
-            me.KickAss.addPlayer();
+          me.respawn = {
+            count: 5,
+            timer: null,
+            div: document.createElement('div')
+          };
 
-            socket.send({
-              guid: me.GUID,
-              respawn: true
-            });
-          }, 5000);
+          // TODO - make interval instead, and display countdown in main window...
+          me.respawn.timer = window.setInterval(function () {
+            var div = me.respawn.div;
+
+            if (!me.respawn.count) {
+              me.KickAss.addPlayer();
+
+              socket.send({
+                guid: me.GUID,
+                respawn: true
+              });
+
+              document.body.removeChild(div);
+
+              window.clearInterval(me.respawn.timer);
+
+            } else if (me.respawn.count === 5) {
+              div.style.color = '#d0d0d0';
+              div.style.fontSize = '300px';
+              div.style.textAlign = 'center';
+              div.style.fontFamily = "Arial";
+              
+              document.body.appendChild(div);
+            }
+
+            div.innerHTML = me.respawn.count;
+
+            me.respawn.count = me.respawn.count - 1;
+          }, 1000);
         }
       } else {
         if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
@@ -2058,6 +2091,13 @@ var KickAss = (function (window) {
     if (obj.respawn === true) {
       if (obj.guid !== me.GUID) {
         me.KickAss.addEnemy(obj.guid);
+      }
+    }
+
+    if (obj.quit === true) {
+      if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
+        me.KickAss.enemies[obj.guid].destroy();
+        delete me.KickAss.enemies[obj.guid];
       }
     }
     
