@@ -1,0 +1,13 @@
+{
+  "server": {
+    "ip": "127.0.0.1",
+    "port": 808,
+    "name": "Local KickAss",
+    "max_number_connections": 20
+  },
+  "game": {
+    "width": 900,
+    "height": 600,
+    "time_between_shots": 250
+  }
+}
