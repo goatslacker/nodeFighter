@@ -6,7 +6,7 @@ var http = require('http'),
     sys = require(process.binding('natives').util ? 'util' : 'sys'),
     server = null,
     clients = {};
-    
+
 function send404(res) {
   res.writeHead(404);
   res.write('404');

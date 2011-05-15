@@ -356,9 +356,14 @@ var KickAss = (function (window) {
 			
 			// We keep track of scrolling information and window size
 			this.scrollPos = new Vector(0, 0);
-			this.windowSize = {width: 0, height: 0};
+			this.windowSize = {width: 900, height: 600};
 			
-			this.updateWindowInfo();
+      var stage = document.getElementById('game');
+      stage.style.width = this.windowSize.width + 'px';
+      stage.style.height = this.windowSize.height + 'px';
+      stage.style.border = '1px dotted black';
+      // TODO
+//			this.updateWindowInfo();
 		},
 		
 		begin: function () {
@@ -431,7 +436,7 @@ var KickAss = (function (window) {
 			var currentTime = now();
 			var tdelta = (currentTime - this.lastUpdate)/1000;
 			
-			this.updateWindowInfo();
+//			this.updateWindowInfo();
 			
       if (this.player) {
         this.player.update(tdelta);
@@ -518,11 +523,14 @@ var KickAss = (function (window) {
 		*/
 		
 		updateWindowInfo: function () {
+//FIXME
 			this.windowSize = {
-				width: document.documentElement.clientWidth,
-				height: document.documentElement.clientHeight
+				width: 300,
+//document.documentElement.clientWidth,
+				height: 300
+//document.documentElement.clientHeight
 			};
-			
+
 			this.scrollPos.x = window.pageXOffset || document.documentElement.scrollLeft;
 			this.scrollPos.y = window.pageYOffset || document.documentElement.scrollTop;
 		},
@@ -614,7 +622,7 @@ var KickAss = (function (window) {
 			style.zIndex = '1000000';
 			style.textAlign = 'right';
 
-			document.body.appendChild(this.container);
+			document.getElementById('game').appendChild(this.container);
 			
 			// Points view
 			this.points = document.createElement('div');
@@ -697,7 +705,7 @@ var KickAss = (function (window) {
       this.sheet = new Sheet(new Rect(100, 100, 50, 50));
       
       // Physics
-      this.pos = new Vector(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+      this.pos = new Vector(Math.random() * me.KickAss.windowSize.width, Math.random() * me.KickAss.windowSize.height);
       this.vel = new Vector(0, 0);
       this.acc = new Vector(0, 0);
       this.dir = new Vector(1, 0);
@@ -1561,7 +1569,7 @@ var KickAss = (function (window) {
 			this.angle = 0;
 			
 			this.updateCanvas();
-			(document.body).appendChild(this.canvas);
+			(document.getElementById('game')).appendChild(this.canvas);
 		},
 		
 		/*
@@ -1828,7 +1836,7 @@ var KickAss = (function (window) {
                 method: "respawn"
               });
 
-              document.body.removeChild(div);
+              document.getElementById('game').removeChild(div);
 
               window.clearInterval(me.respawn.timer);
 
@@ -1838,7 +1846,7 @@ var KickAss = (function (window) {
               div.style.textAlign = 'center';
               div.style.fontFamily = "Arial";
               
-              document.body.appendChild(div);
+              document.getElementById('game').appendChild(div);
             }
 
             div.innerHTML = me.respawn.count;
