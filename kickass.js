@@ -1763,6 +1763,10 @@ var KickAss = (function (window) {
     var player = null;
 
     switch (obj.method) {
+    case "server-full":
+      alert(obj.message);
+      break;
+
     case "connect":
       // set the proper ID for the client
       if (obj.guid === me.GUID) {
