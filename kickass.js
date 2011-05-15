@@ -74,7 +74,7 @@ var KickAss = (function (window) {
 		
 			var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
 		
-			for (; k < len; k++) {
+			for (k; k < len; k++) {
 				if (k in t && t[k] === searchElement)
 					return k;
 			}
@@ -260,69 +260,6 @@ var KickAss = (function (window) {
 	
 	/*
 		Function:
-			each
-		
-		Call a function on an every indice of an array.
-	*/
-	
-	function each(arr, func, bindObject) {
-		// This is the same function as the native Array.prototype.forEach
-		if (typeof arr.forEach == 'function')
-			return arr.forEach(func, bindObject);
-		
-		for (var key in arr) if (arr.hasOwnProperty(key)) 
-			func.call(bindObject || window, arr[key], key);
-	}
-	
-	/*
-		Function:
-			addEvent
-		
-		Add event to given element. Works cross browser, adding multiple events
-		is possible.
-		
-		Taken from: http://www.quirksmode.org/blog/archives/2005/10/_and_the_winner_1.html
-		
-		Parameters:
-			(element) obj - The element to add events to
-			(string) type - The type of event, e.g. "click", "keydown"
-			(function) fn - The function to call upon the event
-	*/
-	
-	function addEvent(obj, type, fn) {
-		if (obj.addEventListener)
-			obj.addEventListener(type, fn, false);
-		else if (obj.attachEvent) {
-			obj["e"+type+fn] = fn;
-			obj[type+fn] = function () { obj["e"+type+fn](window.event); }
-			obj.attachEvent("on"+type, obj[type+fn]);
-		}
-	}
-	
-	/*
-		Function:
-			removeEvent
-		
-		Remove events added by addEvent.
-		
-		Parameters:
-			(element) obj - The element to remove events from
-			(string) type - The type of event, e.g. "click", "keydown"
-			(function) fn - The function to remove
-	*/
-
-	function removeEvent(obj, type, fn) {
-		if (obj.removeEventListener)
-			obj.removeEventListener(type, fn, false);
-		else if (obj.detachEvent) {
-			obj.detachEvent("on"+type, obj[type+fn]);
-			obj[type+fn] = null;
-			obj["e"+type+fn] = null;
-		}
-	}
-	
-	/*
-		Function:
 			elementIsContainedIn
 		
 		Check if the element1 contains the element2
@@ -413,9 +350,9 @@ var KickAss = (function (window) {
 			this.keydownEvent = bind(this, this.keydown);
 			this.keyupEvent = bind(this, this.keyup);
 			
-			addEvent(document, 'keydown', this.keydownEvent);
-			addEvent(document, 'keyup', this.keyupEvent);
-			addEvent(document, 'keypress', this.keydownEvent);
+			document.addEventListener('keydown', this.keydownEvent, false);
+			document.addEventListener('keyup', this.keyupEvent, false);
+			document.addEventListener('keypress', this.keydownEvent, false);
 			
 			// We keep track of scrolling information and window size
 			this.scrollPos = new Vector(0, 0);
@@ -540,34 +477,6 @@ var KickAss = (function (window) {
 		
 		/*
 			Method:
-				registerElement
-			
-			Register a DOM-element that belongs to the game
-			
-			Parameters:
-				(element) el - The element to register. It should have the classname "KICKASSELEMENT"
-								to avoid confusion
-		*/
-		
-		registerElement: function (el) {
-			this.elements.push(el);
-		},
-		
-		/*
-			Method:
-				unregisterElement
-			
-			Remove an element registered with <registerElement>
-			
-			Parameters: See KickAss.registerElement
-		*/
-		
-		unregisterElement: function (el) {
-			this.elements.splice(this.elements.indexOf(el), 1);
-		},
-		
-		/*
-			Method:
 				isKickAssElement
 			
 			Check if the passed element is child of a registered element.
@@ -654,9 +563,9 @@ var KickAss = (function (window) {
       var that = this;
 
 			// Remove global events
-			removeEvent(document, 'keydown', this.keydownEvent);
-			removeEvent(document, 'keypress', this.keydownEvent);
-			removeEvent(document, 'keyup', this.keyupEvent);
+			document.removeEventListener('keydown', this.keydownEvent, false);
+			document.removeEventListener('keypress', this.keydownEvent, false);
+			document.removeEventListener('keyup', this.keyupEvent, false);
 			
       this.player.destroy();
 
@@ -673,7 +582,7 @@ var KickAss = (function (window) {
 			clearInterval(this.loopTimer);
 
       socket.send({
-        quit: true,
+        method: "quit",
         guid: me.GUID
       });
 		}
@@ -696,15 +605,15 @@ var KickAss = (function (window) {
 			this.container = document.createElement('div');
 			this.container.className = 'KICKASSELEMENT';
 			
-			with (this.container.style) {
-				position = 'fixed';
-				bottom = '20px';
-				right = '20px';
-				font = '16pt Arial';
-				color = 'black';
-				zIndex = '1000000';
-				textAlign = 'right';
-			}
+      var style = this.container.style;
+			style.position = 'fixed';
+			style.bottom = '20px';
+			style.right = '20px';
+			style.font = '16pt Arial';
+			style.color = 'black';
+			style.zIndex = '1000000';
+			style.textAlign = 'right';
+
 			document.body.appendChild(this.container);
 			
 			// Points view
@@ -720,9 +629,11 @@ var KickAss = (function (window) {
 			this.escToQuit.innerHTML = 'Press esc to quit';
 			this.container.appendChild(this.escToQuit);
 			
+/*
 			this.game.registerElement(this.container);
 			this.game.registerElement(this.points);
 			this.game.registerElement(this.escToQuit);
+*/
 		},
 		
 		/*
@@ -741,10 +652,11 @@ var KickAss = (function (window) {
 		},
 		
 		destroy: function () {
+/*
 			this.game.unregisterElement(this.container);
 			this.game.unregisterElement(this.escToQuit);
 			this.game.unregisterElement(this.points);
-			
+*/			
 			this.container.parentNode.removeChild(this.container);
 		}
 	});
@@ -876,7 +788,7 @@ var KickAss = (function (window) {
         currentRotation: this.currentRotation,
 			  thrustersActive: this.thrustersActive,
         fire: this.fire,
-        position: true
+        method: "position"
       });
 
 		},
@@ -986,6 +898,7 @@ var KickAss = (function (window) {
   };
 
   Enemy.prototype = Object.create(Player.prototype);
+
   Enemy.prototype.update = function (tdelta) {
 
     // Activate thrusters!
@@ -1037,34 +950,6 @@ var KickAss = (function (window) {
       
       this.lastPos = this.pos.cp();
 		}
-/*
-    // Add velocity to position
-    this.pos.add(this.vel.mulNew(tdelta));
-    
-    // Update flames?
-    if (now() - this.lastFrameUpdate > 1000/15)
-      this.generateFlames();
-    
-    // Check bounds and update accordingly
-    this.checkBounds();
-    
-    // Only update canvas if any changes have occured
-    if (!this.lastPos.is(this.pos) || this.currentRotation) {
-      // Draw changes onto canvas
-      this.sheet.clear();
-      this.sheet.setAngle(this.dir.angle());
-      this.sheet.setPosition(this.pos);
-      
-      // Draw flames if thrusters are activated
-      if (!this.acc.is({x: 0, y: 0})) {
-        this.sheet.drawFlames(this.flames);
-      }
-      
-      this.sheet.drawPlayer(this.verts);
-      
-      this.lastPos = this.pos.cp();
-		}
-*/
   };
 
 	/*
@@ -1138,8 +1023,8 @@ var KickAss = (function (window) {
 
               // FIXME - right now the kill is one way, make it two way, one sends the kill the other acknowledges it's been killed
               socket.send({
-                kill: true,
-                guid: hit
+                guid: hit,
+                method: "kill"
               });
 
               // delete enemy
@@ -1157,72 +1042,6 @@ var KickAss = (function (window) {
  
 					// Show it again
 					this.game.showAll();
-				}
-			}
-		},
-		
-		/*
-			Method:
-				blink
-        TODO - check this out
-			
-			Shows a red border around all remaining enemies every 0.25 seconds
-		*/
-		
-		blink: function () {
-			if (now() - this.lastBlink > 250) {
-				for (var i = 0, el; el = this.enemyIndex[i]; i++) {
-					if (!this.blinkActive)
-						el.style.outline = '1px solid red';
-					else
-						el.style.outline = el.KICKASSOLDBORDER;
-				}					
-				this.blinkActive = !this.blinkActive;
-				this.lastBlink = now();
-				
-				if (!this.blinkActive) {
-					this.updateEnemyIndex();
-				}
-			}
-		},
-		
-		/*
-			Method:
-				endBlink
-        TODO - check this out
-			
-			End any blinking action (if there is any)
-		*/
-		
-		endBlink: function () {
-			// endBlink is called every run loop if B isn't pressed, so only
-			// reset everything if there is something to reset
-			if (this.enemyIndex.length) {
-				for (var i = 0, el; el = this.enemyIndex[i]; i++)
-					el.style.outline = el.KICKASSOLDBORDER;
-				
-				this.enemyIndex = [];
-				this.lastBlink = 0;
-				this.blinkActive = false;
-			}
-		},
-		
-		/*
-			Method:
-				updateEnemyIndex
-			  TODO
-			Update index of destroyable enemies
-		*/
-		
-		updateEnemyIndex: function () {
-			var all = document.getElementsByTagName('*');
-			this.enemyIndex = [];
-			
-			for (var i = 0, el; el = all[i]; i++) {
-				if (this.hasOnlyTextualChildren(el)) {
-					this.enemyIndex.push(el);
-					
-					el.KICKASSOLDBORDER = el.style.outline || (document.defaultView.getComputedStyle(el, null).outline);
 				}
 			}
 		},
@@ -1259,40 +1078,6 @@ var KickAss = (function (window) {
 			this.bullets[pid].push(bullet);
 		},
 		
-		/*
-			Method:
-				hasOnlyTextualChildren
-			
-			Find out if an element is suitable for destruction by checking if it
-			only has "textual" children. It wouldn't be too fun a game if you could
-			simply destroy the wrapper-div of a page on your first shot, right?
-		*/
-		
-		hasOnlyTextualChildren: function (element) {
-			if (element == document.defaultView || element == document.body)
-				return false;
-			
-			if (element.className && element.className.indexOf('KICKASSELEMENT') != -1)
-				return false;
-			
-			for (var i = 0; i < element.childNodes.length; i++) {
-				if (element.childNodes[i].childNodes[0]) {
-					var children = element.childNodes;
-					for (var i = 0, child; child = children[i]; i++) {
-						if (child.nodeType != 1 || child.style.visibility == 'hidden' || child.style.display == 'none')
-							continue;
-						
-						if (child.offsetHeight == 0 || child.offsetWidth == 0)
-							continue;
-						
-						if (ELEMENTSTHATCOUNTASTEXTUAL.indexOf(child.tagName) == -1 && ELEMENTSTHATARENOTTOBEINCLUDED.indexOf(child.tagName) == -1)
-							return false;
-					}
-				}
-			}
-			return true;
-		},
-		
 		destroy: function () {
 			for (var key in this.bullets) if (this.bullets.hasOwnProperty(key)) 
 				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++)
@@ -1301,9 +1086,6 @@ var KickAss = (function (window) {
 		}
 	});
 	
-	var ELEMENTSTHATCOUNTASTEXTUAL = ['BR', 'SELECT', 'LEGEND'];
-	var ELEMENTSTHATARENOTTOBEINCLUDED = ['BR', 'SCRIPT', 'STYLE', 'TITLE', 'META', 'HEAD', 'OPTION', 'OPTGROUP'];
-		
 	/*
 		Class:
 			Bullet
@@ -1665,7 +1447,7 @@ var KickAss = (function (window) {
 			this.raphael.canvas.className = 'KICKASSELEMENT';
 			
 			// -- bad style?
-			me.KickAss.registerElement(this.raphael.canvas);
+//			me.KickAss.registerElement(this.raphael.canvas);
 			// --
 		},
 		
@@ -1745,10 +1527,6 @@ var KickAss = (function (window) {
 		},
 		
 		destroy: function ()  {
-			// -- Bad style?
-			me.KickAss.unregisterElement(this.raphael.canvas);
-			// --
-			
 			this.raphael.remove();
 		}
 	});
@@ -1775,10 +1553,6 @@ var KickAss = (function (window) {
 				position = 'absolute';
 				zIndex = '1000000';
 			}
-			
-			// -- Bad style?
-			me.KickAss.registerElement(this.canvas);
-			// --
 			
 			if (this.canvas.getContext)
 				this.ctx = this.canvas.getContext('2d');
@@ -1952,7 +1726,7 @@ var KickAss = (function (window) {
 		
 		destroy: function ()  {
 			// -- Bad style?
-			me.KickAss.unregisterElement(this.canvas);
+//			me.KickAss.unregisterElement(this.canvas);
 			// --
 			
 			this.canvas.parentNode.removeChild(this.canvas);
@@ -1960,6 +1734,7 @@ var KickAss = (function (window) {
 	});
 	
 
+  /****************** */
   socket = new io.Socket("127.0.0.1", { port: 808, rememberTransport: false });
   socket.on('connect', function () {
     // generate UID
@@ -1973,14 +1748,14 @@ var KickAss = (function (window) {
     }());
 
     // tell the server our ID
-    socket.send({ connected: true, guid: me.GUID });
+    socket.send({ method: "connect", guid: me.GUID });
   });
 
   socket.on('message', function (obj) {
     var player = null;
 
-    // initial connection logic
-    if (obj.connected === true) {
+    switch (obj.method) {
+    case "connect":
       // set the proper ID for the client
       if (obj.guid === me.GUID) {
         me.GUID = obj.clientId;
@@ -2005,16 +1780,10 @@ var KickAss = (function (window) {
       if (obj.hasOwnProperty("clients")) {
         me.clients = obj.clients;
       }
-    }
-
-    // new player :D
-    if (obj.newPlayer === true) {
-      // TODO need to work on initial rotation
-      me.KickAss.addEnemy(obj.clientId);
-    }
+      break;
 
     // update position of player
-    if (obj.position === true) {
+    case "position":
       // if it's not you...
       if (obj.clientId !== me.GUID) {
         if (me.KickAss.enemies.hasOwnProperty(obj.clientId)) {
@@ -2028,11 +1797,10 @@ var KickAss = (function (window) {
           player.fire = obj.fire;
         }
       }
-    }
+      break;
 
-    // FIXME should be a switch statement!
     // someone died!
-    if (obj.kill === true) {
+    case "kill":
     // TODO - fix security issues
 
       // oh noes I died :(
@@ -2049,7 +1817,6 @@ var KickAss = (function (window) {
             div: document.createElement('div')
           };
 
-          // TODO - make interval instead, and display countdown in main window...
           me.respawn.timer = window.setInterval(function () {
             var div = me.respawn.div;
 
@@ -2058,7 +1825,7 @@ var KickAss = (function (window) {
 
               socket.send({
                 guid: me.GUID,
-                respawn: true
+                method: "respawn"
               });
 
               document.body.removeChild(div);
@@ -2085,22 +1852,30 @@ var KickAss = (function (window) {
           delete me.KickAss.enemies[obj.guid];
         }
       }
+      break;
 
-    }
-
-    if (obj.respawn === true) {
+    // someone's respawning
+    case "respawn":
       if (obj.guid !== me.GUID) {
         me.KickAss.addEnemy(obj.guid);
       }
-    }
+      break;
 
-    if (obj.quit === true) {
+    // new player!
+    case "player":
+      // TODO need to work on initial rotation
+      me.KickAss.addEnemy(obj.clientId);
+    break;
+
+    // someone quit...
+    case "quit":
       if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
         me.KickAss.enemies[obj.guid].destroy();
         delete me.KickAss.enemies[obj.guid];
       }
+      break;
     }
-    
+
   });
 
   /** return a constructor to call to start a new game */

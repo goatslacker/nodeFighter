@@ -40,29 +40,33 @@ io = io.listen(server);
 io.on('connection', function (client) {
 
   // send all current clients to app
-  client.send({ connected: true, clients: clients });
+  client.send({ method: "connect", clients: clients });
 
   // add this new client
   clients[client.sessionId] = true;
 
   // let everyone know there's a new player in town
-  client.broadcast({ newPlayer: true, clientId: client.sessionId });
+  client.broadcast({ method: "player", clientId: client.sessionId });
 
   client.on('message', function (message) {
     message.clientId = client.sessionId;
 
+    switch (message.method) {
     // initial connection, client sent us a guid, we send them back their client id
-    if (message.connected === true) {
+    case "connect":
       // send message back to client with the clientId
       client.send(message);
-    }
+      break;
 
-    if (message.position === true || message.kill === true || message.respawn === true || message.quit === true) {
+    case "position":
+    case "kill":
+    case "respawn":
       client.broadcast(message);
+      break;
 
-      if (message.quit === true) {
-        delete clients[message.guid];
-      }
+    case "quit":
+      client.broadcast(message);
+      delete clients[message.guid];
     }
   });
 
@@ -70,7 +74,7 @@ io.on('connection', function (client) {
     delete clients[client.sessionId];
 
     // player disconnected D:
-    client.broadcast({ delPlayer: true, clientId: client.sessionId });
+    client.broadcast({ method: "quit", clientId: client.sessionId });
   });
 });
 
