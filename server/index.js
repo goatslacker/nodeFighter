@@ -1,9 +1,9 @@
-/*global require process*/
-var http = require('http'),
-    url = require('url'),
-    fs = require('fs'),
-    io = require('./lib/socket.io'),
-    sys = require(process.binding('natives').util ? 'util' : 'sys'),
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const sys = require(process.binding('natives').util ? 'util' : 'sys');
+
+var io = require('./lib/socket.io'),
     server = null,
     clients = {},
     client_ct = 0,

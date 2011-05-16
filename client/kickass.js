@@ -1247,8 +1247,7 @@ var KickAss = (function (window) {
 		initialize: function (pos) {
 			this.bornAt = now();
 			this.pos = pos.cp();
-      // option: explosion velocity
-			this.particleVel = new Vector(400, 0);
+			this.particleVel = new Vector(me.options.explosions.velocity, 0);
 			
 			this.generateParticles();
 			
@@ -1372,10 +1371,10 @@ var KickAss = (function (window) {
 		*/
 		
 		drawPlayer: function (verts) {
-      // option: player width and colors
-			this.drawer.setFillColor('white');
-			this.drawer.setStrokeColor('black');
-			this.drawer.setLineWidth(1.5);
+      var options = me.options.player;
+			this.drawer.setFillColor(options.colors[0]);
+			this.drawer.setStrokeColor(options.colors[1]);
+			this.drawer.setLineWidth(options.thickness);
 			
 			this.drawer.tracePoly(verts);
 			this.drawer.fillPath();
@@ -1396,12 +1395,12 @@ var KickAss = (function (window) {
 		*/
 		
 		drawFlames: function (flames) {
-      // option: flame colors
-			this.drawer.setStrokeColor('red');
+      var options = me.options.player.afterburners;
+			this.drawer.setStrokeColor(options[0]);
 			this.drawer.tracePoly(flames.r);
 			this.drawer.strokePath();
 			
-			this.drawer.setStrokeColor('yellow');
+			this.drawer.setStrokeColor(options[1]);
 			this.drawer.tracePoly(flames.y);
 			this.drawer.strokePath();
 		},
@@ -1414,9 +1413,9 @@ var KickAss = (function (window) {
 		*/
 		
 		drawBullet: function () {
-      // option: bullet color and width
-			this.drawer.setFillColor('black');
-			this.drawer.drawCircle(2.5);
+      var options = me.options.player.bullets;
+			this.drawer.setFillColor(options.color);
+			this.drawer.drawCircle(options.thickness);
 		},
 		
 		/*
@@ -1431,10 +1430,10 @@ var KickAss = (function (window) {
 		*/
 		
 		drawExplosion: function (particles) {
-      // option: explosion colors
+      var options = me.options.explosions.colors;
 			for (var i = 0, particle; particle = particles[i]; i++) {
 				// Set a random particle color
-				this.drawer.setFillColor(['yellow', 'red'][random(0, 1)]);
+				this.drawer.setFillColor([options[0], options[1]][random(0, 1)]);
 				this.drawer.drawLine(particle.pos.x, particle.pos.y, particle.pos.x - particle.dir.x * 10, particle.pos.y - particle.dir.y * 10);
 			}
 		},
@@ -1851,9 +1850,8 @@ var KickAss = (function (window) {
               player.destroy();
               delete me.KickAss.player;
 
-              // option: respawn time
               me.respawn = {
-                count: 5,
+                count: me.options.player.respawn,
                 timer: null,
                 div: document.createElement('div')
               };
