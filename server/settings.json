@@ -1,13 +1,37 @@
 {
   "server": {
     "ip": "127.0.0.1",
-    "port": 808,
     "name": "Local KickAss",
-    "max_number_connections": 20
+    "max_connections": 20
   },
   "game": {
     "width": 900,
     "height": 600,
-    "time_between_shots": 250
+    "score": {
+      "suicide": -10,
+      "kill": 10
+    },
+    "player": {
+      "width": 20,
+      "height": 30,
+      "friction": 0.8,
+      "terminalVelocity": 2000,
+      "time_between_shots": 250,
+      "bullet_ttl": 750,
+      "max_bullets": 10,
+      "colors": ["white", "black"],
+      "thickness": 1.5,
+      "afterburners": ["red", "yellow"],
+      "bullets": {
+        "color": "black",
+        "thickness": 2.5
+      },
+      "respawn": 5000
+    },
+    "explosions": {
+      "time": 300,
+      "velocity": 400,
+      "colors": ["yellow", "red"]
+    }
   }
 }

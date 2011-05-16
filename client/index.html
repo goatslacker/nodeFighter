@@ -7,7 +7,12 @@
   </head>
 
   <body>
-    <div id="game"></div>
-    <button onclick="KickAss(); this.parentNode.removeChild(this)">Kick Ass!</button>
+    <div id="game">
+      <div id="connect">
+        <label>Server IP</label>
+        <input type="text" name="ip" />
+        <button onclick="KickAss(); var self = document.getElementById('connect'); self.parentNode.removeChild(self);">Connect</button>
+      </div>
+    </div>
   </body>
 </html>

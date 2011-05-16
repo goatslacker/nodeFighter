@@ -258,7 +258,8 @@ var KickAss = (function (window) {
 		}
 	}
 	
-	/*
+	/**
+    @deprecated
 		Function:
 			elementIsContainedIn
 		
@@ -356,14 +357,13 @@ var KickAss = (function (window) {
 			
 			// We keep track of scrolling information and window size
 			this.scrollPos = new Vector(0, 0);
+      // option: window size
 			this.windowSize = {width: 900, height: 600};
 			
       var stage = document.getElementById('game');
       stage.style.width = this.windowSize.width + 'px';
       stage.style.height = this.windowSize.height + 'px';
       stage.style.border = '1px dotted black';
-      // TODO
-//			this.updateWindowInfo();
 		},
 		
 		begin: function () {
@@ -371,7 +371,7 @@ var KickAss = (function (window) {
 			this.addPlayer();
 			
 			// Begin loop
-			this.loopTimer = window.setInterval(bind(this, this.loop), 1000/60);
+			this.loopTimer = window.setInterval(bind(this, this.loop), 1000 / 60);
 		},
 		
 		keydown: function (e) {
@@ -480,7 +480,8 @@ var KickAss = (function (window) {
 			this.explosionManager.addExplosion(enemy.pos);
     },
 		
-		/*
+		/**
+      @deprecated
 			Method:
 				isKickAssElement
 			
@@ -535,7 +536,8 @@ var KickAss = (function (window) {
 			this.scrollPos.y = window.pageYOffset || document.documentElement.scrollTop;
 		},
 		
-		/*
+		/**
+      @deprecated
 			Method:
 				hideAll
 			
@@ -548,7 +550,8 @@ var KickAss = (function (window) {
 				el.style.visibility = 'hidden';
 		},
 		
-		/*
+		/**
+      @deprecated
 			Method:
 				showAll
 			
@@ -636,12 +639,6 @@ var KickAss = (function (window) {
 			this.escToQuit.className = 'KICKASSELEMENT';
 			this.escToQuit.innerHTML = 'Press esc to quit';
 			this.container.appendChild(this.escToQuit);
-			
-/*
-			this.game.registerElement(this.container);
-			this.game.registerElement(this.points);
-			this.game.registerElement(this.escToQuit);
-*/
 		},
 		
 		/*
@@ -654,17 +651,13 @@ var KickAss = (function (window) {
 				(int) killed - The number of points killed in 
 		*/
 		
-		addPoints: function (killed) {
-			this.numPoints += killed*10;
+		addPoints: function () {
+      // option: score
+			this.numPoints += 10;
 			this.points.innerHTML = this.numPoints;
 		},
 		
 		destroy: function () {
-/*
-			this.game.unregisterElement(this.container);
-			this.game.unregisterElement(this.escToQuit);
-			this.game.unregisterElement(this.points);
-*/			
 			this.container.parentNode.removeChild(this.container);
 		}
 	});
@@ -696,6 +689,7 @@ var KickAss = (function (window) {
         [-10, 10]
       ];
       
+      // option: player size
       this.size = {width: 20, height: 30};
       
       // Flame vertices
@@ -712,6 +706,7 @@ var KickAss = (function (window) {
       this.currentRotation = 0;
       
       // Physics-related constants
+      // option: velocity
       this.friction = 0.8;
       this.terminalVelocity = 2000;
       
@@ -723,6 +718,7 @@ var KickAss = (function (window) {
 
 		update: function (tdelta) {
       // shooting
+      // option: time between fire
       this.fire = (this.game.isKeyPressed(' ') && now() - this.game.bulletManager.lastFired > 250);
 
 			// Rotation
@@ -763,7 +759,7 @@ var KickAss = (function (window) {
 			this.pos.add(this.vel.mulNew(tdelta));
 			
 			// Update flames?
-			if (now() - this.lastFrameUpdate > 1000/15)
+			if (now() - this.lastFrameUpdate > 1000 / 15)
 				this.generateFlames();
 			
 			// Check bounds and update accordingly
@@ -777,7 +773,7 @@ var KickAss = (function (window) {
 				this.sheet.setPosition(this.pos);
 				
 				// Draw flames if thrusters are activated
-				if (!this.acc.is({x: 0, y: 0})) {
+				if (!this.acc.is({ x: 0, y: 0 })) {
 					this.sheet.drawFlames(this.flames);
 				}
 				
@@ -811,25 +807,27 @@ var KickAss = (function (window) {
 		
 		generateFlames: function () {
 			var rWidth = this.size.width,
-				rIncrease = this.size.width * 0.1,
-				yWidth = this.size.width * 0.6,
-				yIncrease = yWidth * 0.2,
-				halfR = rWidth / 2,
-				halfY = yWidth / 2,
-				halfPlayerHeight = this.size.height / 4;
+				  rIncrease = this.size.width * 0.1,
+				  yWidth = this.size.width * 0.6,
+				  yIncrease = yWidth * 0.2,
+				  halfR = rWidth / 2,
+				  halfY = yWidth / 2,
+				  halfPlayerHeight = this.size.height / 4;
 				
 			// Firstly recreate the flame vertice arrays
 			this.flames.r = [[-1 * halfPlayerHeight, -1 * halfR]];
 			this.flames.y = [[-1 * halfPlayerHeight, -1 * halfY]];
 
-			for (var x = 0; x < rWidth; x += rIncrease)
+			for (var x = 0; x < rWidth; x += rIncrease) {
 				this.flames.r.push([-random(2, 7) - halfPlayerHeight, x - halfR]);
+      }
 
 			this.flames.r.push([-1 * halfPlayerHeight, halfR]);
 			
 			// And the yellow flames
-			for (var x = 0; x < yWidth; x += yIncrease)
+			for (var x = 0; x < yWidth; x += yIncrease) {
 				this.flames.y.push([-random(2, 7) - halfPlayerHeight, x - halfY]);
+      }
 
 			this.flames.y.push([-1 * halfPlayerHeight, halfY]);
 		
@@ -884,11 +882,11 @@ var KickAss = (function (window) {
 		
 		// Rotate left/right/stop rotation methods
 		rotateLeft: function () {
-			this.currentRotation = -Math.PI*2;
+			this.currentRotation = -Math.PI * 2;
 		},
 		
 		rotateRight: function () {
-			this.currentRotation = Math.PI*2;
+			this.currentRotation = Math.PI * 2;
 		},
 		
 		stopRotate: function () {
@@ -936,7 +934,7 @@ var KickAss = (function (window) {
     this.pos.add(this.vel.mulNew(tdelta));
     
     // Update flames?
-    if (now() - this.lastFrameUpdate > 1000/15)
+    if (now() - this.lastFrameUpdate > 1000 / 15)
       this.generateFlames();
     
     // Check bounds and update accordingly
@@ -950,7 +948,7 @@ var KickAss = (function (window) {
       this.sheet.setPosition(this.pos);
       
       // Draw flames if thrusters are activated
-      if (!this.acc.is({x: 0, y: 0})) {
+      if (!this.acc.is({ x: 0, y: 0 })) {
         this.sheet.drawFlames(this.flames);
       }
       
@@ -1010,7 +1008,7 @@ var KickAss = (function (window) {
 				
 				// Remove bullets older than 2 seconds
 				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++) {
-					if (time - bullet.bornAt > 2000) {
+					if (time - bullet.bornAt > 750) { // option: time bullet is alive
 						bullet.destroy();
 						this.bullets[key].splice(i, 1);
 					}
@@ -1041,7 +1039,7 @@ var KickAss = (function (window) {
               delete this.game.enemies[hit];
 
               // add points
-              this.game.menuManager.addPoints(10);
+              this.game.menuManager.addPoints();
 
               bullet.destroy();
               this.bullets[key].splice(i, 1);
@@ -1065,6 +1063,7 @@ var KickAss = (function (window) {
 			var pid = player.id;
 			
 			// If the player has more than 10 bullets, remove the oldest one
+      // option: max number of bullets
 			if (this.bullets[pid] && this.bullets[pid].length > 10) {
 				this.bullets[pid][0].destroy();
 				this.bullets[pid].shift();
@@ -1154,23 +1153,25 @@ var KickAss = (function (window) {
 				
 		// See: <Player.checkBounds>
 		checkBounds: function () {
-			var w = this.game.windowSize.width;
-			var h = this.game.windowSize.height;
+			var w = this.game.windowSize.width,
+			    h = this.game.windowSize.height,
 			
-			var rightBound = this.pos.x + this.sheet.rect.size.width/2;
-			var bottomBound = this.pos.y + this.sheet.rect.size.height/2;
+			    rightBound = this.pos.x + this.sheet.rect.size.width / 2,
+			    bottomBound = this.pos.y + this.sheet.rect.size.height / 2;
 			
 			// Check bounds X
-			if (rightBound > w)
+			if (rightBound > w) {
 				this.pos.x = 0;
-			else if (this.pos.x < 0)
-				this.pos.x = w - this.sheet.rect.size.width/2;
-			
+      } else if (this.pos.x < 0) {
+				this.pos.x = w - this.sheet.rect.size.width / 2;
+      }			
+
 			// Check bounds Y
-			if (bottomBound > h)
+			if (bottomBound > h) {
 				this.pos.y = 0;
-			else if (this.pos.y < 0)
-				this.pos.y = h - this.sheet.rect.size.height/2;
+      } else if (this.pos.y < 0) {
+				this.pos.y = h - this.sheet.rect.size.height / 2;
+      }
 		},
 		
 		destroy: function () {
@@ -1194,6 +1195,7 @@ var KickAss = (function (window) {
 			var time = now();
 			
 			for (var i = 0, explosion; explosion = this.explosions[i]; i++) {
+        // option: explosion time
 				// Remove explosions older than 0.3 seconds
 				if (time - explosion.bornAt > 300) {
 					explosion.destroy();
@@ -1242,6 +1244,7 @@ var KickAss = (function (window) {
 		initialize: function (pos) {
 			this.bornAt = now();
 			this.pos = pos.cp();
+      // option: explosion velocity
 			this.particleVel = new Vector(400, 0);
 			
 			this.generateParticles();
@@ -1366,6 +1369,7 @@ var KickAss = (function (window) {
 		*/
 		
 		drawPlayer: function (verts) {
+      // option: player width and colors
 			this.drawer.setFillColor('white');
 			this.drawer.setStrokeColor('black');
 			this.drawer.setLineWidth(1.5);
@@ -1389,6 +1393,7 @@ var KickAss = (function (window) {
 		*/
 		
 		drawFlames: function (flames) {
+      // option: flame colors
 			this.drawer.setStrokeColor('red');
 			this.drawer.tracePoly(flames.r);
 			this.drawer.strokePath();
@@ -1406,6 +1411,7 @@ var KickAss = (function (window) {
 		*/
 		
 		drawBullet: function () {
+      // option: bullet color and width
 			this.drawer.setFillColor('black');
 			this.drawer.drawCircle(2.5);
 		},
@@ -1422,6 +1428,7 @@ var KickAss = (function (window) {
 		*/
 		
 		drawExplosion: function (particles) {
+      // option: explosion colors
 			for (var i = 0, particle; particle = particles[i]; i++) {
 				// Set a random particle color
 				this.drawer.setFillColor(['yellow', 'red'][random(0, 1)]);
@@ -1733,165 +1740,184 @@ var KickAss = (function (window) {
 		},
 		
 		destroy: function ()  {
-			// -- Bad style?
-//			me.KickAss.unregisterElement(this.canvas);
-			// --
-			
 			this.canvas.parentNode.removeChild(this.canvas);
 		}
 	});
 	
+  /** return a constructor to call to start a new game */
+	return function (ip) {
+    ip = ip || "127.0.0.1";
 
-  /****************** */
-  socket = new io.Socket("127.0.0.1", { port: 808, rememberTransport: false });
-  socket.on('connect', function () {
-    // generate UID
-    me.GUID = (function () {
-      var id = "",
-          i = 0;
-      for (i; i < 4; i = i + 1) {
-        id = id + ((((1+Math.random())*0x10000)|0).toString(16).substring(1));
-      }
-      return id;
-    }());
+    /****************** */
+    socket = new io.Socket(ip, { port: 5287, rememberTransport: false });
+    socket.on('connect', function () {
+      // generate UID
+      me.GUID = (function () {
+        var id = "",
+            i = 0;
+        for (i; i < 4; i = i + 1) {
+          id = id + ((((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1));
+        }
+        return id;
+      }());
+    });
 
-    // tell the server our ID
-    socket.send({ method: "connect", guid: me.GUID });
-  });
+    socket.on('message', function (obj) {
+      var player = null,
+          connected = false;
 
-  socket.on('message', function (obj) {
-    var player = null;
+      // TODO first check client version against server version
+      // Once server gives us the green light, we'll ask for the server settings
+      // after we receive server settings we'll acknowledge we loaded them and we'll ask for our clientID
+      // start the game!
+      if (!connected && obj.method === "handshake") {
 
-    switch (obj.method) {
-    case "server-full":
-      alert(obj.message);
-      break;
+        switch (obj.p) {
 
-    case "connect":
-      // set the proper ID for the client
-      if (obj.guid === me.GUID) {
-        me.GUID = obj.clientId;
+        case "server-full":
+          alert(obj.message);
+          break;
 
-        // start game
-        if (!me.KickAss) {
-          me.KickAss = new KickAss();
-          me.KickAss.begin();
+        case "settings":
+          me.options = obj.settings.game;
 
-          if (me.hasOwnProperty("clients")) {
-            for (player in me.clients) {
-              if (me.clients.hasOwnProperty(player)) {
-                me.KickAss.addEnemy(player);
+          if (obj.hasOwnProperty("clients")) {
+            me.clients = obj.clients;
+          }
+
+          socket.send({ method: "connect", guid: me.GUID });
+          break;
+
+        case "connect":
+          // set the proper ID for the client
+          if (obj.guid === me.GUID) {
+            me.GUID = obj.clientId;
+
+            // start game
+            if (!me.KickAss) {
+              me.KickAss = new KickAss();
+              me.KickAss.begin();
+
+              if (me.hasOwnProperty("clients")) {
+                for (player in me.clients) {
+                  if (me.clients.hasOwnProperty(player)) {
+                    me.KickAss.addEnemy(player);
+                  }
+                }
+
+                delete me.clients;
               }
             }
-
-            delete me.clients;
           }
+
+          connected = true;
+          break;
+
         }
-      }
 
-      if (obj.hasOwnProperty("clients")) {
-        me.clients = obj.clients;
-      }
-      break;
-
-    // update position of player
-    case "position":
-      // if it's not you...
-      if (obj.clientId !== me.GUID) {
-        if (me.KickAss.enemies.hasOwnProperty(obj.clientId)) {
-          var player = me.KickAss.enemies[obj.clientId];
-
-          // TODO need to put this in a nice easy to read obj...
-          player.pos.x = obj.pos.x;
-          player.pos.y = obj.pos.y;
-          player.currentRotation = obj.currentRotation;
-          player.thrustersActive = obj.thrustersActive;
-          player.fire = obj.fire;
-        }
-      }
-      break;
-
-    // someone died!
-    case "kill":
-    // TODO - fix security issues
-
-      // oh noes I died :(
-      if (obj.guid === me.GUID) {
-        var player = me.KickAss.player;
-        if (player) {
-          me.KickAss.explosionManager.addExplosion(player.pos);
-          player.destroy();
-          delete me.KickAss.player;
-
-          me.respawn = {
-            count: 5,
-            timer: null,
-            div: document.createElement('div')
-          };
-
-          me.respawn.timer = window.setInterval(function () {
-            var div = me.respawn.div;
-
-            if (!me.respawn.count) {
-              me.KickAss.addPlayer();
-
-              socket.send({
-                guid: me.GUID,
-                method: "respawn"
-              });
-
-              document.getElementById('game').removeChild(div);
-
-              window.clearInterval(me.respawn.timer);
-
-            } else if (me.respawn.count === 5) {
-              div.style.color = '#d0d0d0';
-              div.style.fontSize = '300px';
-              div.style.textAlign = 'center';
-              div.style.fontFamily = "Arial";
-              
-              document.getElementById('game').appendChild(div);
-            }
-
-            div.innerHTML = me.respawn.count;
-
-            me.respawn.count = me.respawn.count - 1;
-          }, 1000);
-        }
       } else {
-        if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
-          me.KickAss.enemies[obj.guid].destroy();
-          delete me.KickAss.enemies[obj.guid];
+
+        switch (obj.method) {
+
+        // update position of player
+        case "position":
+          // if it's not you...
+          if (obj.clientId !== me.GUID) {
+            if (me.KickAss.enemies.hasOwnProperty(obj.clientId)) {
+              var player = me.KickAss.enemies[obj.clientId];
+
+              // TODO need to put this in a nice easy to read obj...
+              player.pos.x = obj.pos.x;
+              player.pos.y = obj.pos.y;
+              player.currentRotation = obj.currentRotation;
+              player.thrustersActive = obj.thrustersActive;
+              player.fire = obj.fire;
+            }
+          }
+          break;
+
+        // someone died!
+        case "kill":
+        // TODO - fix security issues
+
+          // oh noes I died :(
+          if (obj.guid === me.GUID) {
+            var player = me.KickAss.player;
+            if (player) {
+              me.KickAss.explosionManager.addExplosion(player.pos);
+              player.destroy();
+              delete me.KickAss.player;
+
+              // option: respawn time
+              me.respawn = {
+                count: 5,
+                timer: null,
+                div: document.createElement('div')
+              };
+
+              me.respawn.timer = window.setInterval(function () {
+                var div = me.respawn.div;
+
+                if (!me.respawn.count) {
+                  me.KickAss.addPlayer();
+
+                  socket.send({
+                    guid: me.GUID,
+                    method: "respawn"
+                  });
+
+                  document.getElementById('game').removeChild(div);
+
+                  window.clearInterval(me.respawn.timer);
+
+                } else if (me.respawn.count === 5) {
+                  div.style.color = '#d0d0d0';
+                  div.style.fontSize = '300px';
+                  div.style.textAlign = 'center';
+                  div.style.fontFamily = "Arial";
+                  
+                  document.getElementById('game').appendChild(div);
+                }
+
+                div.innerHTML = me.respawn.count;
+
+                me.respawn.count = me.respawn.count - 1;
+              }, 1000);
+            }
+          } else {
+            if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
+              me.KickAss.enemies[obj.guid].destroy();
+              delete me.KickAss.enemies[obj.guid];
+            }
+          }
+          break;
+
+        // someone's respawning
+        case "respawn":
+          if (obj.guid !== me.GUID) {
+            me.KickAss.addEnemy(obj.guid);
+          }
+          break;
+
+        // new player!
+        case "player":
+          // TODO need to work on initial rotation
+          me.KickAss.addEnemy(obj.clientId);
+        break;
+
+        // someone quit...
+        case "quit":
+          if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
+            me.KickAss.enemies[obj.guid].destroy();
+            delete me.KickAss.enemies[obj.guid];
+          }
+          break;
         }
+
       }
-      break;
 
-    // someone's respawning
-    case "respawn":
-      if (obj.guid !== me.GUID) {
-        me.KickAss.addEnemy(obj.guid);
-      }
-      break;
+    });
 
-    // new player!
-    case "player":
-      // TODO need to work on initial rotation
-      me.KickAss.addEnemy(obj.clientId);
-    break;
-
-    // someone quit...
-    case "quit":
-      if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
-        me.KickAss.enemies[obj.guid].destroy();
-        delete me.KickAss.enemies[obj.guid];
-      }
-      break;
-    }
-
-  });
-
-  /** return a constructor to call to start a new game */
-	return function () {
     // TODO verify game configs with the server
     /**
       - bullet time between fire

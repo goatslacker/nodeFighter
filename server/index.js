@@ -6,7 +6,19 @@ var http = require('http'),
     sys = require(process.binding('natives').util ? 'util' : 'sys'),
     server = null,
     clients = {},
-    client_ct = 0;
+    client_ct = 0,
+    options = {};
+
+// set the game options
+(function () {
+  fs.readFile("settings.json", 'UTF-8', function (err, data) {
+    if (err) {
+      throw "Server settings not found!";
+    } else {
+      options = JSON.parse(data);
+    }
+  });
+}());
 
 function send404(res) {
   res.writeHead(404);
@@ -33,27 +45,20 @@ server = http.createServer(function (req, res) {
   callFile(file, res);
 });
 
-server.listen(808);
+server.listen(5287);
 
 // socket.io, I choose you
 io = io.listen(server);
   
 io.on('connection', function (client) {
 
-  // send all current clients to app
-  client.send({ method: "connect", clients: clients });
-
   // TODO set proper limit in external JSON file
-  if (client_ct > 20) {
-    client.send({ method: "server-full", message: "We're sorry but the server is full :(" });
+  if (client_ct > options.server.max_connections) {
+    client.send({ method: "handshake", p: "server-full", message: "We're sorry but the server is full :(" });
   } else {
 
-    // add this new client
-    clients[client.sessionId] = true;
-    client_ct++;
-
-    // let everyone know there's a new player in town
-    client.broadcast({ method: "player", clientId: client.sessionId });
+    // first we send the client the server settings and verify details
+    client.send({ method: "handshake", p: "settings", settings: options, clients: clients });
 
     client.on('message', function (message) {
       message.clientId = client.sessionId;
@@ -61,8 +66,18 @@ io.on('connection', function (client) {
       switch (message.method) {
       // initial connection, client sent us a guid, we send them back their client id
       case "connect":
+        message.method = "handshake";
+        message.p = "connect";
+
+        // add this new client
+        clients[client.sessionId] = true;
+        client_ct++;
+
         // send message back to client with the clientId
         client.send(message);
+
+        // let everyone know there's a new player in town
+        client.broadcast({ method: "player", clientId: client.sessionId });
         break;
 
       case "position":
@@ -89,5 +104,3 @@ io.on('connection', function (client) {
   }
 
 });
-
-console.log('Server started on: localhost:808');
