@@ -357,8 +357,7 @@ var KickAss = (function (window) {
 			
 			// We keep track of scrolling information and window size
 			this.scrollPos = new Vector(0, 0);
-      // option: window size
-			this.windowSize = {width: 900, height: 600};
+			this.windowSize = { width: me.options.width, height: me.options.height };
 			
       var stage = document.getElementById('game');
       stage.style.width = this.windowSize.width + 'px';
@@ -652,8 +651,7 @@ var KickAss = (function (window) {
 		*/
 		
 		addPoints: function () {
-      // option: score
-			this.numPoints += 10;
+			this.numPoints += me.options.score.kill;
 			this.points.innerHTML = this.numPoints;
 		},
 		
@@ -678,6 +676,8 @@ var KickAss = (function (window) {
 
   Player.prototype = {
     initialize: function () {
+      var options = me.options.player;
+
       this.id = me.GUID;
       
       // Vertices for the player
@@ -689,8 +689,7 @@ var KickAss = (function (window) {
         [-10, 10]
       ];
       
-      // option: player size
-      this.size = {width: 20, height: 30};
+      this.size = { width: options.width, height: options.height };
       
       // Flame vertices
       this.flames = {r: [], y: []};
@@ -705,21 +704,20 @@ var KickAss = (function (window) {
       this.dir = new Vector(1, 0);
       this.currentRotation = 0;
       
-      // Physics-related constants
-      // option: velocity
-      this.friction = 0.8;
-      this.terminalVelocity = 2000;
+      this.friction = options.friction;
+      this.terminalVelocity = options.terminalVelocity;
       
       this.lastPos = new Vector(0, 0);
       this.lastFrameUpdate = 0;
       
       this.generateFlames();
+
+      this.timeBetweenFire = options.bullets.time_between_shots;
     },		
 
 		update: function (tdelta) {
       // shooting
-      // option: time between fire
-      this.fire = (this.game.isKeyPressed(' ') && now() - this.game.bulletManager.lastFired > 250);
+      this.fire = (this.game.isKeyPressed(' ') && now() - this.game.bulletManager.lastFired > this.timeBetweenFire);
 
 			// Rotation
 			if (this.game.isKeyPressed('left')) {
@@ -968,12 +966,17 @@ var KickAss = (function (window) {
 	
 	var BulletManager = new Class({
 		initialize: function () {
+      var options = me.options.player.bullets;
+
 			this.bullets = {};
 			this.lastFired = 0;
 			
 			this.lastBlink = 0;
 			this.blinkActive = false;
 			this.enemyIndex = [];
+
+      this.bullet_ttl = options.ttl;
+      this.bullet_max = options.max;
 		},
 		
 		update: function (tdelta) {
@@ -1008,7 +1011,7 @@ var KickAss = (function (window) {
 				
 				// Remove bullets older than 2 seconds
 				for (var i = 0, bullet; bullet = this.bullets[key][i]; i++) {
-					if (time - bullet.bornAt > 750) { // option: time bullet is alive
+					if (time - bullet.bornAt > this.bullet_ttl) {
 						bullet.destroy();
 						this.bullets[key].splice(i, 1);
 					}
@@ -1063,8 +1066,7 @@ var KickAss = (function (window) {
 			var pid = player.id;
 			
 			// If the player has more than 10 bullets, remove the oldest one
-      // option: max number of bullets
-			if (this.bullets[pid] && this.bullets[pid].length > 10) {
+			if (this.bullets[pid] && this.bullets[pid].length > this.bullet_max) {
 				this.bullets[pid][0].destroy();
 				this.bullets[pid].shift();
 			}
@@ -1188,16 +1190,17 @@ var KickAss = (function (window) {
 	
 	var ExplosionManager = new Class({
 		initialize: function () {
+      var options = me.options.explosions;
 			this.explosions = [];
+      this.explosion_time = options.time;
 		},
 		
 		update: function (tdelta) {
 			var time = now();
 			
 			for (var i = 0, explosion; explosion = this.explosions[i]; i++) {
-        // option: explosion time
-				// Remove explosions older than 0.3 seconds
-				if (time - explosion.bornAt > 300) {
+				// Remove explosions older than N seconds
+				if (time - explosion.bornAt > this.explosion_time) {
 					explosion.destroy();
 					this.explosions.splice(i, 1);
 					continue;
