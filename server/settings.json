@@ -1,7 +1,7 @@
 {
   "server": {
     "ip": "127.0.0.1",
-    "name": "Local KickAss",
+    "name": "Local nodeFighter",
     "max_connections": 20
   },
   "game": {

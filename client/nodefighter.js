@@ -21,7 +21,7 @@
 	distribution.
 */
 
-var KickAss = (function (window) {
+var nodeFighter = (function (window) {
 
   // socket.io object
   var socket = null,
@@ -313,12 +313,12 @@ var KickAss = (function (window) {
 	
 	/*
 		Class:
-			KickAss
+			nodeFighter
 		
 		The main entry point for the game
 	*/
 	
-	var KickAss = new Class({
+	var nodeFighter = new Class({
 		initialize: function () {
 			// Holds all the player instances
       this.player = null;
@@ -482,7 +482,7 @@ var KickAss = (function (window) {
 		/**
       @deprecated
 			Method:
-				isKickAssElement
+				isnodeFighterElement
 			
 			Check if the passed element is child of a registered element.
 			
@@ -490,7 +490,7 @@ var KickAss = (function (window) {
 				(element) el - The element to check
 		*/
 		
-		isKickAssElement: function (el) {
+		isnodeFighterElement: function (el) {
 			for (var i = 0, element; element = this.elements[i]; i++) {
 				if (el === element || elementIsContainedIn(element, el))
 					return true;
@@ -698,7 +698,7 @@ var KickAss = (function (window) {
       this.sheet = new Sheet(new Rect(100, 100, 50, 50));
       
       // Physics
-      this.pos = new Vector(Math.random() * me.KickAss.windowSize.width, Math.random() * me.KickAss.windowSize.height);
+      this.pos = new Vector(Math.random() * me.nodeFighter.windowSize.width, Math.random() * me.nodeFighter.windowSize.height);
       this.vel = new Vector(0, 0);
       this.acc = new Vector(0, 0);
       this.dir = new Vector(1, 0);
@@ -1464,7 +1464,7 @@ var KickAss = (function (window) {
 			this.raphael.canvas.className = 'KICKASSELEMENT';
 			
 			// -- bad style?
-//			me.KickAss.registerElement(this.raphael.canvas);
+//			me.nodeFighter.registerElement(this.raphael.canvas);
 			// --
 		},
 		
@@ -1488,8 +1488,8 @@ var KickAss = (function (window) {
 			this.raphael.canvas.width = this.rect.size.width;
 			this.raphael.canvas.height = this.rect.size.height;
 			
-			this.raphael.canvas.style.left = me.KickAss.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
-			this.raphael.canvas.style.top = me.KickAss.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
+			this.raphael.canvas.style.left = me.nodeFighter.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
+			this.raphael.canvas.style.top = me.nodeFighter.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
 		},
 		
 		// See: <SheetCanvas>
@@ -1629,8 +1629,8 @@ var KickAss = (function (window) {
 			if (this.canvas.height != this.rect.size.height)
 				this.canvas.height = this.rect.size.height;
 			
-			this.canvas.style.left = me.KickAss.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
-			this.canvas.style.top = me.KickAss.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
+			this.canvas.style.left = me.nodeFighter.scrollPos.x + (this.rect.pos.x - this.rect.size.width/2) + 'px';
+			this.canvas.style.top = me.nodeFighter.scrollPos.y + (this.rect.pos.y - this.rect.size.height/2) + 'px';
 		},
 		
 		/*
@@ -1796,14 +1796,14 @@ var KickAss = (function (window) {
             me.GUID = obj.clientId;
 
             // start game
-            if (!me.KickAss) {
-              me.KickAss = new KickAss();
-              me.KickAss.begin();
+            if (!me.nodeFighter) {
+              me.nodeFighter = new nodeFighter();
+              me.nodeFighter.begin();
 
               if (me.hasOwnProperty("clients")) {
                 for (player in me.clients) {
                   if (me.clients.hasOwnProperty(player)) {
-                    me.KickAss.addEnemy(player);
+                    me.nodeFighter.addEnemy(player);
                   }
                 }
 
@@ -1825,8 +1825,8 @@ var KickAss = (function (window) {
         case "position":
           // if it's not you...
           if (obj.clientId !== me.GUID) {
-            if (me.KickAss.enemies.hasOwnProperty(obj.clientId)) {
-              var player = me.KickAss.enemies[obj.clientId];
+            if (me.nodeFighter.enemies.hasOwnProperty(obj.clientId)) {
+              var player = me.nodeFighter.enemies[obj.clientId];
 
               // TODO need to put this in a nice easy to read obj...
               player.pos.x = obj.pos.x;
@@ -1844,11 +1844,11 @@ var KickAss = (function (window) {
 
           // oh noes I died :(
           if (obj.guid === me.GUID) {
-            var player = me.KickAss.player;
+            var player = me.nodeFighter.player;
             if (player) {
-              me.KickAss.explosionManager.addExplosion(player.pos);
+              me.nodeFighter.explosionManager.addExplosion(player.pos);
               player.destroy();
-              delete me.KickAss.player;
+              delete me.nodeFighter.player;
 
               me.respawn = {
                 count: me.options.player.respawn,
@@ -1860,7 +1860,7 @@ var KickAss = (function (window) {
                 var div = me.respawn.div;
 
                 if (!me.respawn.count) {
-                  me.KickAss.addPlayer();
+                  me.nodeFighter.addPlayer();
 
                   socket.send({
                     guid: me.GUID,
@@ -1886,9 +1886,9 @@ var KickAss = (function (window) {
               }, 1000);
             }
           } else {
-            if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
-              me.KickAss.enemies[obj.guid].destroy();
-              delete me.KickAss.enemies[obj.guid];
+            if (me.nodeFighter.enemies.hasOwnProperty(obj.guid)) {
+              me.nodeFighter.enemies[obj.guid].destroy();
+              delete me.nodeFighter.enemies[obj.guid];
             }
           }
           break;
@@ -1896,21 +1896,21 @@ var KickAss = (function (window) {
         // someone's respawning
         case "respawn":
           if (obj.guid !== me.GUID) {
-            me.KickAss.addEnemy(obj.guid);
+            me.nodeFighter.addEnemy(obj.guid);
           }
           break;
 
         // new player!
         case "player":
           // TODO need to work on initial rotation
-          me.KickAss.addEnemy(obj.clientId);
+          me.nodeFighter.addEnemy(obj.clientId);
         break;
 
         // someone quit...
         case "quit":
-          if (me.KickAss.enemies.hasOwnProperty(obj.guid)) {
-            me.KickAss.enemies[obj.guid].destroy();
-            delete me.KickAss.enemies[obj.guid];
+          if (me.nodeFighter.enemies.hasOwnProperty(obj.guid)) {
+            me.nodeFighter.enemies[obj.guid].destroy();
+            delete me.nodeFighter.enemies[obj.guid];
           }
           break;
         }
