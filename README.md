@@ -2,19 +2,19 @@
 
 Demo:
 
-nodefighter.nodester.com
+http://nodefighter.nodester.com
 
 ## Credits:
 
-erkie.github.com -> Copyright (c) <2011> <Erik Rothoff Andersson>
+erkie.github.com -> Copyright (c) 2011 by Erik Rothoff Andersson
 
-+
+PLUS
 
 Socket.IO -> Copyright (c) 2011 Guillermo Rauch <guillermo@learnboost.com>
 
-=
+EQUALS
 
-nodeFighter -> Copyright (C) <2011> by Josh Perez <josh@goatslacker.com>
+nodeFighter -> Copyright (C) 2011 by Josh Perez <josh@goatslacker.com>
 
 ## How to run a demo
 
