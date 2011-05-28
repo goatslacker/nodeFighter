@@ -3,7 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const sys = require(process.binding('natives').util ? 'util' : 'sys');
 
-var io = require('./lib/socket.io'),
+var io = require('socket.io'),
     server = null,
     clients = {},
     client_ct = 0,
