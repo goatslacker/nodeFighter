@@ -1751,7 +1751,7 @@ var nodeFighter = (function (window) {
     ip = ip || "127.0.0.1";
 
     /****************** */
-    socket = new io.Socket(ip, { port: 5287, rememberTransport: false });
+    socket = new io.Socket(ip, { port: 10194, rememberTransport: false });
     socket.on('connect', function () {
       // generate UID
       me.GUID = (function () {
