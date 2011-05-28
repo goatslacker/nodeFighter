@@ -45,7 +45,7 @@ server = http.createServer(function (req, res) {
   callFile(file, res);
 });
 
-server.listen(5287);
+server.listen(10194);
 
 // socket.io, I choose you
 io = io.listen(server);
@@ -71,7 +71,7 @@ io.on('connection', function (client) {
 
         // add this new client
         clients[client.sessionId] = true;
-        client_ct++;
+        client_ct += 1;
 
         // send message back to client with the clientId
         client.send(message);
@@ -98,7 +98,7 @@ io.on('connection', function (client) {
 
       // player disconnected D:
       client.broadcast({ method: "quit", clientId: client.sessionId });
-      client_ct--;
+      client_ct -= 1;
     });
 
   }
