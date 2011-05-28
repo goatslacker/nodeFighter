@@ -1,8 +1,8 @@
 {
   "server": {
-    "ip": "127.0.0.1",
-    "name": "Local nodeFighter",
-    "max_connections": 20
+    "ip": "nodefighter.nodester.com",
+    "name": "nodeFighter-us-east-1",
+    "max_connections": 15
   },
   "game": {
     "width": 900,
@@ -20,16 +20,16 @@
       "thickness": 1.5,
       "afterburners": ["red", "yellow"],
       "bullets": {
-        "time_between_shots": 250,
-        "ttl": 750,
+        "time_between_shots": 100,
+        "ttl": 900,
         "max": 10,
         "color": "black",
-        "thickness": 2.5
+        "thickness": 2
       },
-      "respawn": 5
+      "respawn": 3
     },
     "explosions": {
-      "time": 300,
+      "time": 350,
       "velocity": 400,
       "colors": ["yellow", "red"]
     }
