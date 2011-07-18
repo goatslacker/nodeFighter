@@ -1871,7 +1871,7 @@ var nodeFighter = (function (window) {
 
                   window.clearInterval(me.respawn.timer);
 
-                } else if (me.respawn.count === 5) {
+                } else if (me.respawn.count === me.options.player.respawn) {
                   div.style.color = '#d0d0d0';
                   div.style.fontSize = '300px';
                   div.style.textAlign = 'center';

@@ -1,0 +1,14 @@
+{
+  "name": "nodefighter",
+  "subdomain": "nodefighter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goatslacker/nodeFighter.git"
+  },
+  "scripts": {
+    "start": "server.js"
+  },
+  "dependencies": {
+    "socket.io": "0.6.18"
+  }
+} 
