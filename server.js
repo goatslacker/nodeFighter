@@ -11,7 +11,7 @@ var io = require('socket.io'),
 
 // set the game options
 (function () {
-  fs.readFile("settings.json", 'UTF-8', function (err, data) {
+  fs.readFile("./settings.json", 'UTF-8', function (err, data) {
     if (err) {
       throw "Server settings not found!";
     } else {
