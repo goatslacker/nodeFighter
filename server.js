@@ -3,7 +3,6 @@
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
-const sys = require(process.binding('natives').util ? 'util' : 'sys');
 
 var io = require('socket.io'),
     server = null,
@@ -29,7 +28,7 @@ function send404(res) {
 }
 
 function callFile(file, res) {
-  fs.readFile("." + file, function (err, data) {
+  fs.readFile(__dirname + "/" + file, function (err, data) {
     if (err) {
       send404(res);
     } else {
@@ -54,7 +53,6 @@ io = io.listen(server);
   
 io.on('connection', function (client) {
 
-  // TODO set proper limit in external JSON file
   if (client_ct > options.server.max_connections) {
     client.send({ method: "handshake", p: "server-full", message: "We're sorry but the server is full :(" });
   } else {
