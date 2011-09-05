@@ -1,3 +1,5 @@
+/*global require __dirname process */
+
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
@@ -11,7 +13,7 @@ var io = require('socket.io'),
 
 // set the game options
 (function () {
-  fs.readFile("./settings.json", 'UTF-8', function (err, data) {
+  fs.readFile(__dirname + "/settings.json", 'UTF-8', function (err, data) {
     if (err) {
       throw "Server settings not found!";
     } else {
