@@ -1,6 +1,6 @@
 {
   "server": {
-    "ip": "nodefighter.nodester.com",
+    "ip": "127.0.0.1",
     "name": "nodeFighter-us-east-1",
     "max_connections": 15
   },

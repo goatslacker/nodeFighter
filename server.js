@@ -43,6 +43,8 @@ server = http.createServer(function (req, res) {
   var path = url.parse(req.url).pathname,
       file = (path === "/") ? "/index.html" : path;
 
+  console.info(req.method, file);
+
   callFile(file, res);
 });
 
@@ -50,54 +52,49 @@ server.listen(10194);
 
 // socket.io, I choose you
 io = io.listen(server);
-  
-io.on('connection', function (client) {
+
+io.sockets.on('connection', function (client) {
 
   if (client_ct > options.server.max_connections) {
-    client.send({ method: "handshake", p: "server-full", message: "We're sorry but the server is full :(" });
+    client.emit('error:server-full', "We're sorry but the server is full :(");
   } else {
 
     // first we send the client the server settings and verify details
-    client.send({ method: "handshake", p: "settings", settings: options, clients: clients });
+    client.emit('settings', options, clients);
 
-    client.on('message', function (message) {
-      message.clientId = client.sessionId;
+    client.on('newplayer', function (guid) {
+      client.emit('connected', client.id);
 
-      switch (message.method) {
-      // initial connection, client sent us a guid, we send them back their client id
-      case "connect":
-        message.method = "handshake";
-        message.p = "connect";
+      // add this new client
+      clients[client.id] = true;
+      client_ct += 1;
 
-        // add this new client
-        clients[client.sessionId] = true;
-        client_ct += 1;
-
-        // send message back to client with the clientId
-        client.send(message);
-
-        // let everyone know there's a new player in town
-        client.broadcast({ method: "player", clientId: client.sessionId });
-        break;
-
-      case "position":
-      case "kill":
-      case "respawn":
-        client.broadcast(message);
-        break;
-
-      case "quit":
-        client.broadcast(message);
-        delete clients[message.guid];
-      }
+      // let everyone know there's a new player in town
+      client.broadcast.emit('newplayer', client.id);
     });
 
+    client.on('position', function (obj) {
+      client.broadcast.emit('position', obj);
+    });
+
+    client.on('kill', function (guid) {
+      client.broadcast.emit('kill', guid);
+    });
+
+    client.on('respawn', function (guid) {
+      client.broadcast.emit('respawn', guid);
+    });
+
+    client.on('quit', function (guid) {
+      client.broadcast.emit('quit', guid);
+      delete clients[message.guid];
+    });
 
     client.on('disconnect', function () {
-      delete clients[client.sessionId];
+      delete clients[client.id];
 
       // player disconnected D:
-      client.broadcast({ method: "quit", clientId: client.sessionId });
+      client.broadcast.emit('quit', client.id);
       client_ct -= 1;
     });
 

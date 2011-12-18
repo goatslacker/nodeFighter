@@ -1,5 +1,6 @@
 {
   "name": "nodefighter",
+  "version": "1.0.0",
   "subdomain": "nodefighter",
   "repository": {
     "type": "git",
@@ -9,6 +10,6 @@
     "start": "server.js"
   },
   "dependencies": {
-    "socket.io": "0.6.18"
+    "socket.io": "latest"
   }
-} 
+}
